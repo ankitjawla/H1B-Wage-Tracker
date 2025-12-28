@@ -384,7 +384,7 @@ export default function Map() {
             <div className="footer">
               <div className="footer-left">
                 <a
-                  href="https://github.com/vchrombie/wagemap"
+                  href="https://github.com/ankitjawla/H1B-Wage-Tracker"
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="GitHub"
