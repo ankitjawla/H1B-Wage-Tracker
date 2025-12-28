@@ -54,8 +54,12 @@ export default function PanelHeader({ collapsed, onToggle, contentId }) {
       aria-controls={contentId}
     >
       <div className="title">H1B Wage Tracker</div>
-      <div className="collapse-icon" title={collapsed ? "Expand (Enter/Space)" : "Minimize (Esc)">
-        {collapsed ? <ChevronDownIcon /> : <ChevronUpIcon />}
+      <div className="collapse-icon" title={collapsed ? "Expand (Enter/Space)" : "Minimize (Esc)"}>
+        {collapsed ? (
+          <ChevronDownIcon />
+        ) : (
+          <ChevronUpIcon />
+        )}
       </div>
     </div>
   );
