@@ -7,10 +7,14 @@ An interactive county-level choropleth map for exploring U.S. prevailing wages b
 - 🗺️ **Interactive Map**: Explore wage levels across all U.S. counties with an intuitive choropleth visualization
 - 📊 **Real-time Statistics**: View coverage statistics showing how many counties match each wage level
 - 🔍 **Occupation Search**: Search by job title or SOC (Standard Occupational Classification) code with autocomplete
-- 💰 **Salary Calculator**: Input your annual salary to see which wage level applies in each county
-- 📱 **Responsive Design**: Works seamlessly on desktop, tablet, and mobile devices
-- 🎨 **Color-coded Visualization**: Easy-to-understand color scheme for different wage levels
+- 💰 **Salary Calculator**: Input your annual salary to see which wage level applies in each county (with debounced input for better performance)
+- 📱 **Responsive Design**: Fully responsive layout optimized for desktop, tablet, and mobile devices
+- 🎨 **Color-coded Visualization**: Blue color palette for easy-to-understand wage level visualization
 - 📍 **County Details**: Click on any county to see detailed wage level information
+- ⌨️ **Keyboard Shortcuts**: Full keyboard navigation support (Enter/Space to toggle panel, Esc to collapse)
+- ♿ **Accessibility**: Screen reader friendly with ARIA labels and proper focus management
+- 💾 **State Persistence**: Panel collapse state persists across page reloads
+- 🎭 **Smooth Animations**: Polished UI with smooth transitions and animations
 
 ## 📋 Prerequisites
 
@@ -36,10 +40,11 @@ npm install
 ```
 
 This will install all required dependencies including:
-- React 18
-- Mapbox GL JS
-- Vite
-- Vercel Analytics
+- React 18.3.1
+- Mapbox GL JS 3.5.0
+- Vite 5.4.0
+- Vercel Analytics 1.6.1
+- PropTypes 15.8.1 (for runtime prop validation)
 
 ### 3. Configure Mapbox Token
 
@@ -124,12 +129,12 @@ This serves the production build locally so you can test it before deploying.
 
 ## 🎨 Wage Levels
 
-The application uses four wage levels as defined by the Department of Labor:
+The application uses four wage levels as defined by the Department of Labor, displayed with a blue color palette:
 
-- **Level I (Entry)**: Entry-level wage - Yellow (`#FEF3C7`)
-- **Level II (Qualified)**: Qualified wage - Orange (`#F59E0B`)
-- **Level III (Experienced)**: Experienced wage - Purple (`#8B5CF6`)
-- **Level IV (Fully Competent)**: Fully competent wage - Dark Purple (`#4C1D95`)
+- **Level I (Entry)**: Entry-level wage - Light Blue (`#DBEAFE`)
+- **Level II (Qualified)**: Qualified wage - Medium Blue (`#60A5FA`)
+- **Level III (Experienced)**: Experienced wage - Darker Blue (`#2563EB`)
+- **Level IV (Fully Competent)**: Fully competent wage - Darkest Blue (`#1E3A8A`)
 
 Counties without data or where your salary is below Level I are shown in gray (`#F3F4F6`).
 
@@ -143,10 +148,39 @@ H1B_Wage_Tracker/
 │       └── soc/                  # SOC code wage data files
 │           └── [SOC_CODE].json
 ├── src/
+│   ├── components/               # React components
+│   │   ├── ControlPanel.jsx     # Main control panel (refactored)
+│   │   ├── PanelHeader.jsx      # Panel header with collapse
+│   │   ├── PanelFooter.jsx       # Panel footer with links
+│   │   ├── PanelContent.jsx      # Panel main content
+│   │   ├── OccupationSelector.jsx # Occupation selector wrapper
+│   │   ├── SalaryInput.jsx       # Salary input component
+│   │   ├── StatisticsPanel.jsx   # Statistics display
+│   │   ├── Legend.jsx            # Map legend
+│   │   ├── ErrorBoundary.jsx      # Error boundary component
+│   │   ├── ErrorMessage.jsx      # Error message display
+│   │   ├── LoadingIndicator.jsx  # Loading indicator
+│   │   └── icons/                # Icon components
+│   │       ├── ChevronDownIcon.jsx
+│   │       ├── ChevronUpIcon.jsx
+│   │       ├── GitHubIcon.jsx
+│   │       └── ShareIcon.jsx
+│   ├── hooks/                    # Custom React hooks
+│   │   ├── useMapboxMap.js       # Mapbox map initialization
+│   │   ├── useWageLevels.js      # Wage level calculations
+│   │   ├── useDebounce.js        # Debounce hook
+│   │   ├── useLocalStorage.js    # LocalStorage hook
+│   │   └── useUrlState.js         # URL state management
+│   ├── utils/                    # Utility functions
+│   │   ├── constants.js          # Application constants
+│   │   ├── panelConstants.js     # Panel-specific constants
+│   │   ├── currency.js           # Currency formatting
+│   │   ├── env.js                # Environment validation
+│   │   └── normalize.js          # County name normalization
 │   ├── App.jsx                   # Main application component
 │   ├── main.jsx                  # Application entry point
-│   ├── Map.jsx                   # Main map component with controls
-│   ├── Map.css                   # Map component styles
+│   ├── Map.jsx                   # Main map component
+│   ├── Map.css                   # Map component styles (responsive)
 │   ├── SocAutocomplete.jsx       # Occupation search autocomplete
 │   ├── stateFpToAbbr.js          # State FIPS to abbreviation mapping
 │   └── index.css                 # Global styles
@@ -154,7 +188,10 @@ H1B_Wage_Tracker/
 ├── package.json                  # Project dependencies and scripts
 ├── .gitignore                    # Git ignore rules
 ├── LICENSE                       # License information
-└── README.md                     # This file
+├── README.md                     # This file
+├── IMPROVEMENTS.md               # Code improvement suggestions
+├── CHANGES_IMPLEMENTED.md        # Implementation summary
+└── CONTROLPANEL_IMPROVEMENTS.md # ControlPanel improvements
 ```
 
 ## 🛠️ Technology Stack
@@ -163,6 +200,7 @@ H1B_Wage_Tracker/
 - **Mapbox GL JS 3.5.0** - Interactive map rendering and visualization
 - **Vite 5.4.0** - Fast build tool and development server
 - **Vercel Analytics 1.6.1** - Web analytics integration
+- **PropTypes 15.8.1** - Runtime type checking for React components
 
 ## 📊 Data Source
 
@@ -184,9 +222,21 @@ The wage data is processed and organized by SOC code and county for efficient lo
 
 ### Key Components
 
-- **Map.jsx**: Main component handling map initialization, wage level calculations, and user interactions
+- **Map.jsx**: Main component orchestrating map, wage calculations, and user interactions
+- **ControlPanel.jsx**: Refactored control panel with sub-components (Header, Footer, Content)
+- **useMapboxMap.js**: Custom hook for Mapbox map initialization with error handling
+- **useWageLevels.js**: Custom hook for wage level calculations with loading/error states
+- **useDebounce.js**: Debounce hook for optimizing input performance
+- **useLocalStorage.js**: LocalStorage hook for state persistence
 - **SocAutocomplete.jsx**: Handles occupation search with autocomplete functionality
 - **stateFpToAbbr.js**: Utility for converting state FIPS codes to abbreviations
+
+### Component Architecture
+
+The application follows a modular component architecture:
+- **Components**: Reusable UI components with PropTypes validation
+- **Hooks**: Custom hooks for state management and side effects
+- **Utils**: Utility functions and constants for shared logic
 
 ### Environment Variables
 
@@ -212,12 +262,27 @@ Contributions are welcome! If you'd like to contribute:
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
+## ⌨️ Keyboard Shortcuts
+
+- **Enter/Space**: Toggle control panel collapse/expand
+- **Escape**: Collapse control panel (when expanded)
+
 ## 📝 Notes
 
 - The application assumes 2080 working hours per year for salary calculations
 - Wage data is updated periodically from the Department of Labor
 - Some counties may not have data for all occupations
+- Control panel collapse state persists in localStorage
+- Salary input is debounced (300ms) to optimize performance
 - For finding more job titles and SOC codes, use [O*NET Occupational Keyword Search](https://www.onetonline.org/find/result)
+
+## 🎨 UI/UX Features
+
+- **Responsive Design**: Optimized layouts for mobile (< 768px), tablet (768-1024px), and desktop (> 1024px)
+- **Accessibility**: Full keyboard navigation, ARIA labels, screen reader support, focus indicators
+- **Performance**: Debounced inputs, memoized calculations, optimized re-renders
+- **State Management**: LocalStorage persistence, controlled/uncontrolled component patterns
+- **Error Handling**: Error boundaries, user-friendly error messages, loading states
 
 ## 👤 Author
 
