@@ -42,7 +42,7 @@
     font-size: 24px;
     font-weight: 800;
     letter-spacing: -0.02em;
-    background: linear-gradient(135deg, #4C1D95 0%, #8B5CF6 100%);
+    background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -94,8 +94,8 @@
 }
 
 .salary-input:focus-within {
-    border-color: #8B5CF6;
-    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+    border-color: #2563EB;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .salary-input span {
@@ -282,8 +282,8 @@
 }
 
 .input-box:focus {
-    border-color: #8B5CF6;
-    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+    border-color: #2563EB;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 /* Statistics Panel */

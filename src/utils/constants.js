@@ -10,11 +10,11 @@ export const USA_BOUNDS = [
 ];
 
 export const WAGE_LEVEL_COLORS = {
-  1: "#FEF3C7",
-  2: "#F59E0B",
-  3: "#8B5CF6",
-  4: "#4C1D95",
-  default: "#F3F4F6",
+  1: "#DBEAFE", // Light blue - Level I
+  2: "#60A5FA", // Medium blue - Level II
+  3: "#2563EB", // Darker blue - Level III
+  4: "#1E3A8A", // Darkest blue - Level IV
+  default: "#F3F4F6", // Gray for no data
 };
 
 export const WAGE_LEVEL_NAMES = {
@@ -26,10 +26,10 @@ export const WAGE_LEVEL_NAMES = {
 };
 
 export const MAP_PAINT_COLORS = {
-  4: "#4C1D95", // Level IV
-  3: "#8B5CF6", // Level III
-  2: "#F59E0B", // Level II
-  1: "#FEF3C7", // Level I
-  default: "#F3F4F6", // below/no-data
+  4: "#1E3A8A", // Level IV - Darkest blue
+  3: "#2563EB", // Level III - Darker blue
+  2: "#60A5FA", // Level II - Medium blue
+  1: "#DBEAFE", // Level I - Light blue
+  default: "#F3F4F6", // below/no-data - Gray
 };
 

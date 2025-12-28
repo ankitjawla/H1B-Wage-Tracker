@@ -31,7 +31,7 @@ export default function LoadingIndicator({ message = "Loading..." }) {
           width: "32px",
           height: "32px",
           border: "3px solid #e5e7eb",
-          borderTop: "3px solid #8B5CF6",
+          borderTop: "3px solid #2563EB",
           borderRadius: "50%",
           animation: "spin 1s linear infinite",
         }}
