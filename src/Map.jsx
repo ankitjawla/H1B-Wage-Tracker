@@ -8,7 +8,6 @@ import LoadingIndicator from "./components/LoadingIndicator";
 import "./Map.css";
 
 export default function Map() {
-  const [collapsed, setCollapsed] = useState(false);
   const [soc, setSoc] = useState("11-1011");
   const [socText, setSocText] = useState("11-1011 – Chief Executives");
   const [salary, setSalary] = useState(150000);
@@ -73,8 +72,6 @@ export default function Map() {
   return (
     <>
       <ControlPanel
-        collapsed={collapsed}
-        onToggleCollapse={setCollapsed}
         socText={socText}
         onSocSelect={handleSocSelect}
         salary={salary}
