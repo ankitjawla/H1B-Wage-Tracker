@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { HOURS_PER_YEAR } from "../utils/constants";
+import { HOURS_PER_YEAR, MAP_PAINT_COLORS } from "../utils/constants";
 import { normalize } from "../utils/normalize";
 import { STATE_FP_TO_ABBR } from "../stateFpToAbbr";
 
@@ -71,14 +71,14 @@ export function useWageLevels(mapRef, countiesRef) {
         mapRef.current.setPaintProperty("county-fill", "fill-color", [
           "case",
           ["==", ["get", "level"], 4],
-          "#4C1D95", // Level IV
+          MAP_PAINT_COLORS[4],
           ["==", ["get", "level"], 3],
-          "#8B5CF6", // Level III
+          MAP_PAINT_COLORS[3],
           ["==", ["get", "level"], 2],
-          "#F59E0B", // Level II
+          MAP_PAINT_COLORS[2],
           ["==", ["get", "level"], 1],
-          "#FEF3C7", // Level I
-          "#F3F4F6", // below/no-data
+          MAP_PAINT_COLORS[1],
+          MAP_PAINT_COLORS.default,
         ]);
       } catch (err) {
         console.error("Error updating wage levels:", err);
@@ -96,4 +96,3 @@ export function useWageLevels(mapRef, countiesRef) {
 
   return { updateLevels, stats, loading, error, clearError };
 }
-
