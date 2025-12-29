@@ -52,3 +52,4 @@ export default function OccupationSelector({ value, onSelect }) {
   );
 }
 
+

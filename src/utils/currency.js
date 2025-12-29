@@ -27,3 +27,4 @@ export const validateSalary = (salary, min = 0, max = 10000000) => {
   return !Number.isNaN(salary) && salary >= min && salary <= max;
 };
 
+

@@ -34,3 +34,4 @@ export default function SalaryInput({ value, onChange, disabled = false }) {
   );
 }
 
+

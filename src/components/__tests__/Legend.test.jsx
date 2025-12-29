@@ -20,3 +20,4 @@ describe("Legend component", () => {
   });
 });
 
+
