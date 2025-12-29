@@ -15,7 +15,7 @@ export default function PanelFooter({ onShare, onHelpClick }) {
       <div className="footer">
         <div className="footer-left">
           <a
-            href="https://github.com/ankitjawla/H1B-Wage-Tracker"
+            href="https://github.com/ankitjawla"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="View source code on GitHub"

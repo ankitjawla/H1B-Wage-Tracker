@@ -28,3 +28,4 @@ export const validateSalary = (salary, min = 0, max = 10000000) => {
 };
 
 
+
