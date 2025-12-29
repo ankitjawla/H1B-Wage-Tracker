@@ -131,7 +131,7 @@
   white-space: nowrap;
   min-height: 56px;
   position: relative;
-  margin-bottom: -2px;
+  border-bottom: 3px solid transparent;
 }
 
 .modal-tab::before {
@@ -140,10 +140,11 @@
   bottom: -2px;
   left: 0;
   right: 0;
-  height: 3px;
+  height: 0;
   background: transparent;
   border-radius: 3px 3px 0 0;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1;
 }
 
 .modal-tab:hover:not(.active) {
@@ -163,18 +164,22 @@
   font-weight: 700 !important;
   background: linear-gradient(180deg, #EFF6FF 0%, #DBEAFE 100%) !important;
   box-shadow: 0 -2px 8px rgba(37, 99, 235, 0.1);
+  border-bottom: 4px solid #2563EB !important;
+  z-index: 2;
 }
 
 .modal-tab.active::before {
   background: linear-gradient(90deg, #2563EB 0%, #1E40AF 100%);
   height: 4px;
   box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+  bottom: -2px;
 }
 
 .modal-tab.active:hover {
   background: linear-gradient(180deg, #DBEAFE 0%, #BFDBFE 100%) !important;
   color: #1E3A8A !important;
   transform: translateY(-1px);
+  border-bottom: 4px solid #2563EB !important;
 }
 
 /* Modal Content */
