@@ -138,14 +138,14 @@
 .modal-tab.active {
   color: #1E3A8A !important;
   font-weight: 700 !important;
-  border-bottom-color: #2563EB !important;
-  border-bottom-width: 3px !important;
+  border-bottom: 3px solid #2563EB !important;
   background: #EFF6FF !important;
 }
 
 .modal-tab.active:hover {
   background: #DBEAFE !important;
   color: #1E3A8A !important;
+  border-bottom: 3px solid #2563EB !important;
 }
 
 /* Modal Content */
