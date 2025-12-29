@@ -24,6 +24,13 @@ export default function EducationModal({ isOpen, onClose }) {
   const modalRef = useRef(null);
   const previousActiveElementRef = useRef(null);
 
+  // Reset to first tab when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setActiveTab(TABS[0].id);
+    }
+  }, [isOpen]);
+
   // Focus management
   useEffect(() => {
     if (isOpen) {
