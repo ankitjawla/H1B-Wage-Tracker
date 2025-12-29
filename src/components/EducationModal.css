@@ -124,7 +124,7 @@
   position: relative;
 }
 
-.modal-tab:hover {
+.modal-tab:hover:not(.active) {
   color: #2563EB;
   background: #f3f4f6;
 }
@@ -136,11 +136,16 @@
 }
 
 .modal-tab.active {
-  color: #1E3A8A;
-  font-weight: 700;
-  border-bottom-color: #2563EB;
-  border-bottom-width: 3px;
-  background: #EFF6FF;
+  color: #1E3A8A !important;
+  font-weight: 700 !important;
+  border-bottom-color: #2563EB !important;
+  border-bottom-width: 3px !important;
+  background: #EFF6FF !important;
+}
+
+.modal-tab.active:hover {
+  background: #DBEAFE !important;
+  color: #1E3A8A !important;
 }
 
 /* Modal Content */
