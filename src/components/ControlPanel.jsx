@@ -17,6 +17,7 @@ const CONTENT_ID = "panel-content";
  * @param {boolean} salaryDisabled - Whether salary input is disabled
  * @param {Object} stats - Statistics object
  * @param {Function} onShare - Share button callback
+ * @param {Function} onHelpClick - Help button callback
  * @param {boolean} collapsed - Initial collapsed state (optional, defaults to localStorage)
  * @param {Function} onCollapseChange - Callback when collapse state changes (optional)
  */
@@ -28,6 +29,7 @@ export default function ControlPanel({
   salaryDisabled = false,
   stats,
   onShare,
+  onHelpClick,
   collapsed: controlledCollapsed,
   onCollapseChange,
 }) {
@@ -74,7 +76,7 @@ export default function ControlPanel({
               salaryDisabled={salaryDisabled}
               stats={stats}
             />
-            <PanelFooter onShare={handleShare} />
+            <PanelFooter onShare={handleShare} onHelpClick={onHelpClick} />
           </>
         )}
       </div>
@@ -96,6 +98,7 @@ ControlPanel.propTypes = {
     total: PropTypes.number,
   }).isRequired,
   onShare: PropTypes.func.isRequired,
+  onHelpClick: PropTypes.func.isRequired,
   collapsed: PropTypes.bool,
   onCollapseChange: PropTypes.func,
 };

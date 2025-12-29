@@ -2,12 +2,14 @@ import React from "react";
 import PropTypes from "prop-types";
 import GitHubIcon from "./icons/GitHubIcon";
 import ShareIcon from "./icons/ShareIcon";
+import HelpIcon from "./icons/HelpIcon";
 
 /**
  * Panel footer component with links and share button
  * @param {Function} onShare - Share button callback
+ * @param {Function} onHelpClick - Help button callback
  */
-export default function PanelFooter({ onShare }) {
+export default function PanelFooter({ onShare, onHelpClick }) {
   return (
     <>
       <div className="footer">
@@ -31,6 +33,16 @@ export default function PanelFooter({ onShare }) {
             className="icon-button"
           >
             <ShareIcon />
+          </button>
+
+          <button
+            type="button"
+            onClick={onHelpClick}
+            aria-label="Open education and help"
+            title="Help & Education"
+            className="icon-button"
+          >
+            <HelpIcon />
           </button>
         </div>
 
@@ -61,4 +73,7 @@ export default function PanelFooter({ onShare }) {
 
 PanelFooter.propTypes = {
   onShare: PropTypes.func.isRequired,
+  onHelpClick: PropTypes.func.isRequired,
 };
+
+

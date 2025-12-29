@@ -5,12 +5,14 @@ import { useDebounce } from "./hooks/useDebounce";
 import ControlPanel from "./components/ControlPanel";
 import ErrorMessage from "./components/ErrorMessage";
 import LoadingIndicator from "./components/LoadingIndicator";
+import EducationModal from "./components/EducationModal";
 import "./Map.css";
 
 export default function Map() {
   const [soc, setSoc] = useState("11-1011");
   const [socText, setSocText] = useState("11-1011 – Chief Executives");
   const [salary, setSalary] = useState(150000);
+  const [showEducationModal, setShowEducationModal] = useState(false);
 
   // Debounce salary input to prevent excessive API calls
   const debouncedSalary = useDebounce(salary, 300);
@@ -60,6 +62,15 @@ export default function Map() {
     setSocText(display);
   }, []);
 
+  // Handle education modal
+  const handleOpenEducation = useCallback(() => {
+    setShowEducationModal(true);
+  }, []);
+
+  const handleCloseEducation = useCallback(() => {
+    setShowEducationModal(false);
+  }, []);
+
   // Show error if map failed to load
   if (mapError) {
     return (
@@ -78,6 +89,7 @@ export default function Map() {
         onSalaryChange={setSalary}
         stats={stats}
         onShare={handleShare}
+        onHelpClick={handleOpenEducation}
         salaryDisabled={loading || mapLoading}
       />
 
@@ -92,6 +104,9 @@ export default function Map() {
       {error && (
         <ErrorMessage message={error} onDismiss={clearError} />
       )}
+
+      {/* Education Modal */}
+      <EducationModal isOpen={showEducationModal} onClose={handleCloseEducation} />
 
       <div id="map" />
     </>
