@@ -24,8 +24,14 @@ export default function App() {
   useEffect(() => {
     const handleKeyDown = (e) => {
       // Ctrl+Shift+A (Windows/Linux) or Cmd+Shift+A (Mac)
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === "A") {
+      // Check for both uppercase and lowercase 'a' or 'A', and also check keyCode for compatibility
+      const isAKey = e.key === "A" || e.key === "a" || e.keyCode === 65;
+      const isModifierPressed = e.ctrlKey || e.metaKey;
+      
+      if (isModifierPressed && e.shiftKey && isAKey) {
         e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
         // Only allow admin panel when app is ready (not during welcome screen)
         if (appReady) {
           setShowAdminPanel((prev) => !prev);
@@ -33,9 +39,10 @@ export default function App() {
       }
     };
 
-    window.addEventListener("keydown", handleKeyDown);
+    // Use capture phase to catch the event early, before any other handlers
+    document.addEventListener("keydown", handleKeyDown, true);
     return () => {
-      window.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("keydown", handleKeyDown, true);
     };
   }, [appReady]);
 
