@@ -314,7 +314,7 @@ export const H1B_PROCESS_EDUCATION = {
       },
       {
         title: "USCIS H1B Information",
-        url: "https://www.uscis.gov/working-in-the-united-states/temporary-workers/h-1b-specialty-occupations",
+        url: "https://www.uscis.gov/working-in-the-united-states/h-1b-specialty-occupations",
         description: "Official USCIS H1B visa information"
       },
       {
