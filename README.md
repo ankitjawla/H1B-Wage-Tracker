@@ -29,7 +29,7 @@ Before you begin, ensure you have the following installed:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/ankitjawla/H1B-Wage-Tracker.git
+git clone https://github.com/ankitjawla/
 cd H1B_Wage_Tracker
 ```
 
@@ -295,7 +295,7 @@ See LICENSE file for details.
 ## 🔗 Links
 
 - [Live Application](https://h1b-wage-tracker.vercel.app/)
-- [GitHub Repository](https://github.com/ankitjawla/H1B-Wage-Tracker)
+- [GitHub Repository](https://github.com/ankitjawla/)
 - [OFLC Wage Data](https://flag.dol.gov/wage-data/wage-search)
 - [O*NET Occupational Search](https://www.onetonline.org/find/result)
 
