@@ -55,19 +55,18 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px 24px;
+  padding: 24px 24px 20px 24px;
   border-bottom: 1px solid #e5e7eb;
+  min-height: 72px;
 }
 
 .modal-header h2 {
-  font-size: 24px;
-  font-weight: 800;
-  color: #1f2937;
+  font-size: 28px;
+  font-weight: 700;
+  color: #1E3A8A;
   margin: 0;
-  background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
 }
 
 .modal-close-btn {
@@ -843,11 +842,12 @@ a:hover {
   }
 
   .modal-header {
-    padding: 16px;
+    padding: 20px 16px 16px 16px;
+    min-height: 64px;
   }
 
   .modal-header h2 {
-    font-size: 20px;
+    font-size: 22px;
   }
 
   .modal-tabs {
