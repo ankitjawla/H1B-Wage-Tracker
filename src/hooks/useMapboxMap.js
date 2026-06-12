@@ -94,6 +94,32 @@ export function useMapboxMap(onMapLoad) {
             const countyName = f.properties.NAME || "Unknown";
             const stateAbbr = state || "N/A";
 
+            // Annual Level I–IV thresholds attached by useWageLevels; numeric
+            // only, so safe to interpolate after formatting
+            const thresholds = [
+              ["I", f.properties.wageI],
+              ["II", f.properties.wageII],
+              ["III", f.properties.wageIII],
+              ["IV", f.properties.wageIV],
+            ].filter(([, v]) => Number.isFinite(v));
+
+            const thresholdRows = thresholds
+              .map(
+                ([lvl, v]) =>
+                  `<tr>
+                    <td style="padding: 2px 12px 2px 0; color: #6b7280;">Level ${lvl}</td>
+                    <td style="padding: 2px 0; text-align: right; font-weight: 600; color: #111827;">$${Number(v).toLocaleString("en-US")}</td>
+                  </tr>`
+              )
+              .join("");
+
+            const thresholdSection = thresholdRows
+              ? `<div style="margin-top: 8px; padding: 8px; background: #F9FAFB; border-radius: 4px;">
+                  <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Annual prevailing wage thresholds</div>
+                  <table style="width: 100%; border-collapse: collapse; font-size: 13px;">${thresholdRows}</table>
+                </div>`
+              : "";
+
             new mapboxgl.Popup({ maxWidth: "300px" })
               .setLngLat(e.lngLat)
               .setHTML(
@@ -105,6 +131,7 @@ export function useMapboxMap(onMapLoad) {
                       Level ${level} <span style="font-size: 12px; font-weight: 500;">(${levelName})</span>
                     </div>
                   </div>
+                  ${thresholdSection}
                 </div>`
               )
               .addTo(map);

@@ -22,6 +22,7 @@ export default function SalaryInput({ value, onChange, disabled = false }) {
     <div className="salary-input">
       <span aria-hidden="true">$</span>
       <input
+        id="salary-input"
         type="text"
         value={formatCurrency(value)}
         inputMode="numeric"

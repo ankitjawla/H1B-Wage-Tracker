@@ -17,13 +17,16 @@ which Department of Labor wage **Level (I–IV)** that salary qualifies for in t
 ## Commands
 
 ```bash
-npm install        # install dependencies
-npm run dev        # start Vite dev server (http://localhost:5173)
-npm run build      # production build → dist/
-npm run preview    # preview the production build locally
+npm install            # install dependencies
+npm run dev            # start Vite dev server (http://localhost:5173)
+npm run build          # production build → dist/
+npm run preview        # preview the production build locally
+npm test               # run the Vitest suite once
+npm run test:watch     # Vitest in watch mode
+npm run test:coverage  # Vitest with v8 coverage
 ```
 
-There is **no lint script and no `test` script** defined in `package.json` (see Caveats).
+There is **no lint script** defined in `package.json`.
 
 ### Required environment variable
 
@@ -40,7 +43,9 @@ VITE_MAPBOX_TOKEN=your_mapbox_token_here
 ## Tech Stack
 
 - **React 18.3** (function components + hooks only; no class components except `ErrorBoundary`)
-- **Vite 5.4** (build tool / dev server; `vite.config.js`)
+- **Vite 5.4** (build tool / dev server; `vite.config.js` — splits `mapbox-gl` and `react` into
+  separate vendor chunks via `manualChunks` for better caching)
+- **Vitest + @testing-library/react + jest-dom + jsdom** (test harness; `vitest.config.js`)
 - **Mapbox GL JS 3.5** (map rendering)
 - **PropTypes** for runtime prop validation (project is JS, not TypeScript)
 - **@vercel/analytics** for web analytics
@@ -60,7 +65,10 @@ main.jsx → App.jsx → Map.jsx
    a hidden **AdminPanel** toggled with `Ctrl/Cmd+Shift+A`.
 2. **`Map.jsx`** is the orchestrator. It holds the core state: `soc`, `socText`, `salary`,
    and `showEducationModal`. Salary is debounced (300ms via `useDebounce`) before triggering
-   recomputation.
+   recomputation. The current view is **shareable**: `?soc=` and `?salary=` query params are
+   restored on load (SOC codes are validated against `##-####` before being used in fetch
+   paths) and kept in sync via `history.replaceState` (debounced salary, so no per-keystroke
+   URL writes).
 3. **`useMapboxMap`** (`src/hooks/`) initializes the Mapbox map, loads `public/counties.geojson`,
    adds `county-fill` / `county-outline` layers, and wires the county click popup. Returns
    `mapRef`, `countiesRef`, `mapLoading`, `mapError`.
@@ -68,6 +76,8 @@ main.jsx → App.jsx → Map.jsx
    annual salary to hourly (`salary / 2080`, `HOURS_PER_YEAR`), assigns each county the highest
    level whose threshold the hourly wage meets, updates the GeoJSON source, and sets the
    `fill-color` paint expression. Returns `updateLevels`, `stats`, `loading`, `error`, `clearError`.
+   It also attaches annual threshold properties (`wageI`–`wageIV`) to each matched feature; the
+   county click popup in `useMapboxMap` renders these as a Level I–IV threshold table.
 
 ### Data model (important)
 
@@ -123,7 +133,8 @@ src/
     useWageLevels.js        # wage-level computation + paint
     useDebounce.js          # generic debounce
     useLocalStorage.js      # persisted state
-    useUrlState.js          # query-param–synced state
+    useUrlState.js          # generic query-param state (currently unused; Map.jsx syncs URL directly)
+    __tests__/              # hook tests
   utils/
     constants.js            # HOURS_PER_YEAR, USA_BOUNDS, wage-level colors/names
     panelConstants.js       # localStorage keys, panel constants
@@ -155,15 +166,15 @@ src/
 
 ## Testing
 
-Test files exist under `src/**/__tests__/` and `src/test/setup.js`, written with **Vitest** +
-**@testing-library/react** + **jest-dom**. `vitest.config.js` configures a `jsdom` environment,
-globals, and v8 coverage.
+Tests live under `src/**/__tests__/` with shared setup in `src/test/setup.js`, written with
+**Vitest** + **@testing-library/react** + **jest-dom**. `vitest.config.js` configures a `jsdom`
+environment, globals, and v8 coverage. Run with `npm test` (or `test:watch` / `test:coverage`).
 
-> **Caveat:** `package.json` does **not** declare a `test` script, and Vitest /
-> @testing-library / jsdom are **not listed in `devDependencies`**. As-is, `npm test` and
-> `npx vitest` will not work without first adding those dev dependencies (and ideally a
-> `"test": "vitest"` script). If you add or run tests, install the missing dev deps and wire up
-> the script rather than assuming the harness already exists.
+Notes for writing tests:
+- jsdom does not implement `scrollIntoView`; stub it (`Element.prototype.scrollIntoView = vi.fn()`)
+  when testing components that use it (e.g. `SocAutocomplete`).
+- Components that fetch (e.g. `SocAutocomplete`) are tested by stubbing `fetch` via
+  `vi.stubGlobal` — see `src/components/__tests__/SocAutocomplete.test.jsx`.
 
 ## Git & Workflow
 
