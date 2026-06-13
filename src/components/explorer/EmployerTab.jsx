@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
 import { StatCard, BarList, Section } from "./primitives";
+import LineChart from "./LineChart";
 import { useExplorerData } from "./useExplorerData";
 import { useDebounce } from "../../hooks/useDebounce";
 import { formatNumber, formatUSD } from "../../utils/format";
@@ -32,11 +33,11 @@ function EmployerProfile({ id, onSource, onBack }) {
         <div className="explorer-two-col">
           <div>
             <h4 className="explorer-subhead">LCA filings by year</h4>
-            <BarList items={lcaByYear.map((y) => ({ key: y.fy, label: `FY${y.fy}`, value: y.count }))} />
+            <LineChart data={lcaByYear.map((y) => ({ label: `FY${y.fy}`, value: y.count }))} />
           </div>
           <div>
             <h4 className="explorer-subhead">PERM filings by year</h4>
-            <BarList color="#1E3A8A" items={permByYear.map((y) => ({ key: y.fy, label: `FY${y.fy}`, value: y.count }))} />
+            <LineChart color="#1E3A8A" data={permByYear.map((y) => ({ label: `FY${y.fy}`, value: y.count }))} />
           </div>
         </div>
 
