@@ -6,6 +6,7 @@ import { useExplorerData } from "./useExplorerData";
 import { readExplorerUrl, writeExplorerUrl } from "../../utils/explorerUrl";
 import OverviewTab from "./OverviewTab";
 import EmployerTab from "./EmployerTab";
+import OccupationTab from "./OccupationTab";
 import PermTab from "./PermTab";
 import WagesTab from "./WagesTab";
 import UscisTab from "./UscisTab";
@@ -14,6 +15,7 @@ import "./DataExplorer.css";
 const TABS = [
   { id: "overview", label: "Overview" },
   { id: "employers", label: "Employers" },
+  { id: "occupations", label: "Occupations" },
   { id: "perm", label: "PERM" },
   { id: "wages", label: "Salary Insights" },
   { id: "uscis", label: "USCIS Approvals" },
@@ -62,6 +64,7 @@ export default function DataExplorer({ isOpen, onClose }) {
   const TabBody = {
     overview: OverviewTab,
     employers: EmployerTab,
+    occupations: OccupationTab,
     perm: PermTab,
     wages: WagesTab,
     uscis: UscisTab,

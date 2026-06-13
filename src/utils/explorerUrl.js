@@ -6,7 +6,7 @@
  * `?soc=` / `?salary=` params — each helper preserves the other keys.
  */
 
-const VALID_TABS = ["overview", "employers", "perm", "wages", "uscis"];
+const VALID_TABS = ["overview", "employers", "occupations", "perm", "wages", "uscis"];
 
 // Explorer filter params are prefixed `f_` so they never collide with the
 // map's own `?soc=` / `?salary=` query params.
