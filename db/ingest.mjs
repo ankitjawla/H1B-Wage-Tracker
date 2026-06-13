@@ -2,10 +2,10 @@
 /**
  * Disclosure-data ingestion pipeline.
  *
- * Loads public DOL OFLC and USCIS disclosure files into the Neon database
- * defined in db/schema.sql. These datasets are released periodically (DOL:
- * quarterly, USCIS: annually) — there is no real-time feed — so this is meant
- * to be re-run whenever a new release is published.
+ * Loads public DOL OFLC and USCIS disclosure files into the Supabase Postgres
+ * database (the `h1b` schema defined in db/schema.sql). These datasets are
+ * released periodically (DOL: quarterly, USCIS: annually) — there is no
+ * real-time feed — so re-run this whenever a new release is published.
  *
  * Public sources:
  *   LCA   (H-1B / ETA-9035): https://www.dol.gov/agencies/eta/foreign-labor/performance
@@ -15,26 +15,27 @@
  * The DOL files ship as XLSX; export the sheet to CSV (or use a converter) and
  * point this script at the CSV. USCIS files are already CSV.
  *
- * Usage:
- *   DATABASE_URL=postgres://... node db/ingest.mjs lca   path/to/LCA_FY2024.csv   "FY2024 Q3"
- *   DATABASE_URL=postgres://... node db/ingest.mjs perm  path/to/PERM_FY2024.csv  "FY2024 Q3"
- *   DATABASE_URL=postgres://... node db/ingest.mjs uscis path/to/hub_FY2024.csv   "FY2024"
+ * Usage (SUPABASE_DB_URL is the project's Postgres connection string from the
+ * Supabase dashboard → Settings → Database):
+ *   SUPABASE_DB_URL=postgres://... node db/ingest.mjs lca   path/to/LCA_FY2024.csv   "FY2024 Q3"
+ *   SUPABASE_DB_URL=postgres://... node db/ingest.mjs perm  path/to/PERM_FY2024.csv  "FY2024 Q3"
+ *   SUPABASE_DB_URL=postgres://... node db/ingest.mjs uscis path/to/hub_FY2024.csv   "FY2024"
  *
  * The CSV column mapping below targets the official DOL/USCIS headers; adjust
  * the COLUMN_MAPS if a future release renames columns.
  */
 import { readFileSync } from "node:fs";
-import { neon } from "@neondatabase/serverless";
+import postgres from "postgres";
 
 const CONNECTION =
-  process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.DATABASE_URL_UNPOOLED;
+  process.env.SUPABASE_DB_URL || process.env.DATABASE_URL || process.env.POSTGRES_URL;
 
 if (!CONNECTION) {
-  console.error("Set DATABASE_URL (Neon connection string) before running.");
+  console.error("Set SUPABASE_DB_URL (Postgres connection string) before running.");
   process.exit(1);
 }
 
-const sql = neon(CONNECTION);
+const sql = postgres(CONNECTION, { prepare: false });
 const BATCH = 500;
 
 /** Match the app's county/name normalization style for stable employer joins. */
@@ -100,7 +101,7 @@ async function employerId(name, city, state) {
   if (!norm) return null;
   if (employerCache.has(norm)) return employerCache.get(norm);
   const rows = await sql`
-    INSERT INTO employers (name, normalized_name, city, state)
+    INSERT INTO h1b.employers (name, normalized_name, city, state)
     VALUES (${name}, ${norm}, ${city || null}, ${state || null})
     ON CONFLICT (normalized_name) DO UPDATE SET name = EXCLUDED.name
     RETURNING id`;
@@ -115,7 +116,7 @@ async function ingestLca(rows) {
     await Promise.all(
       chunk.map(async (r) => {
         const empId = await employerId(r.EMPLOYER_NAME, r.EMPLOYER_CITY, r.EMPLOYER_STATE);
-        await sql`INSERT INTO lca_filings
+        await sql`INSERT INTO h1b.lca_filings
           (case_number, employer_id, visa_class, job_title, soc_code, soc_title,
            case_status, received_date, decision_date, fiscal_year,
            wage_rate_from, prevailing_wage, pw_wage_level,
@@ -139,7 +140,7 @@ async function ingestPerm(rows) {
     await Promise.all(
       chunk.map(async (r) => {
         const empId = await employerId(r.EMPLOYER_NAME, r.EMPLOYER_CITY, r.EMPLOYER_STATE);
-        await sql`INSERT INTO perm_filings
+        await sql`INSERT INTO h1b.perm_filings
           (case_number, employer_id, job_title, soc_code, soc_title, case_status,
            received_date, decision_date, fiscal_year, wage_offer, pw_amount,
            pw_level, worksite_city, worksite_state)
@@ -159,7 +160,7 @@ async function ingestUscis(rows) {
   for (const r of rows) {
     const empId = await employerId(r.EMPLOYER, r.CITY, r.STATE);
     if (!empId) continue;
-    await sql`INSERT INTO uscis_hub
+    await sql`INSERT INTO h1b.uscis_hub
       (employer_id, fiscal_year, initial_approval, initial_denial,
        continuing_approval, continuing_denial, naics, city, state)
       VALUES (${empId}, ${intOrNull(r["FISCAL_YEAR"] || r["FISCAL YEAR"])},
@@ -188,13 +189,14 @@ async function main() {
   else if (dataset === "uscis") await ingestUscis(rows);
   else { console.error(`Unknown dataset: ${dataset}`); process.exit(1); }
 
-  await sql`INSERT INTO dataset_meta (dataset, period_label, row_count, ingested_at)
+  await sql`INSERT INTO h1b.dataset_meta (dataset, period_label, row_count, ingested_at)
             VALUES (${dataset}, ${period || null}, ${rows.length}, now())
             ON CONFLICT (dataset) DO UPDATE
               SET period_label = EXCLUDED.period_label,
                   row_count    = EXCLUDED.row_count,
                   ingested_at  = now()`;
   console.log("Done.");
+  await sql.end();
 }
 
 main().catch((err) => {

@@ -130,13 +130,13 @@ export function ExplorerLoading({ label = "Loading…" }) {
 }
 ExplorerLoading.propTypes = { label: PropTypes.string };
 
-/** Banner shown when the explorer is rendering illustrative sample data. */
-export function SampleBanner() {
+/** Banner shown when the live disclosure database can't be reached. */
+export function UnavailableBanner() {
   return (
     <div className="sample-banner" role="status">
-      <strong>Sample data.</strong> The live disclosure database isn&apos;t connected yet, so
-      these figures are illustrative only. Connect the Neon integration and run the ingestion
-      script to see real DOL&nbsp;&amp;&nbsp;USCIS data.
+      <strong>Data unavailable.</strong> The disclosure database couldn&apos;t be reached right
+      now. These figures come straight from the database — nothing is fabricated — so please try
+      again shortly.
     </div>
   );
 }

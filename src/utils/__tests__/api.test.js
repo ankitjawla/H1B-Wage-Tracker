@@ -1,72 +1,58 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { describe, it, expect, afterEach, vi } from "vitest";
 import { fetchData } from "../api";
 
-describe("fetchData", () => {
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
+function mockRpc(json) {
+  return vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve(json) });
+}
 
-  it("returns live data when the API responds with configured data", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({ configured: true, source: "live", totals: { lca: 5 } }),
-      })
-    );
+describe("fetchData (Supabase RPC)", () => {
+  afterEach(() => vi.unstubAllGlobals());
 
+  it("returns live data from the RPC on success", async () => {
+    vi.stubGlobal("fetch", mockRpc({ totals: { lca: 5 }, topStates: [], meta: [] }));
     const { data, source } = await fetchData("overview");
     expect(source).toBe("live");
     expect(data.totals.lca).toBe(5);
   });
 
-  it("falls back to sample data when the API is unconfigured", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({ configured: false, source: "unconfigured" }),
-      })
-    );
-
-    const { data, source } = await fetchData("overview");
-    expect(source).toBe("sample");
-    expect(data.totals).toBeDefined();
-    expect(typeof data.totals.lca).toBe("number");
-  });
-
-  it("falls back to sample data on network error", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network down")));
-
-    const { data, source } = await fetchData("perm");
-    expect(source).toBe("sample");
-    expect(data.summary).toBeDefined();
-  });
-
-  it("filters sample employers by query", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
-
-    const { data, source } = await fetchData("employers", { q: "hooli" });
-    expect(source).toBe("sample");
-    expect(data.employers.length).toBeGreaterThan(0);
-    expect(data.employers.every((e) => e.name.toLowerCase().includes("hooli"))).toBe(true);
-  });
-
-  it("requires at least 2 characters for sample employer search", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
-
-    const { data } = await fetchData("employers", { q: "h" });
-    expect(data.employers).toEqual([]);
-  });
-
-  it("builds query strings without empty params", async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ configured: true, source: "live" }),
-    });
+  it("calls the correct RPC function and forwards params", async () => {
+    const fetchMock = mockRpc({ distribution: {} });
     vi.stubGlobal("fetch", fetchMock);
 
-    await fetchData("wages", { soc: "15-1252", state: "", salary: 130000 });
-    expect(fetchMock).toHaveBeenCalledWith("/api/wages?soc=15-1252&salary=130000");
+    await fetchData("wages", { soc: "15-1252", state: "ca", salary: "130000" });
+
+    const [url, opts] = fetchMock.mock.calls[0];
+    expect(url).toMatch(/\/rest\/v1\/rpc\/h1b_wages$/);
+    expect(JSON.parse(opts.body)).toEqual({ soc: "15-1252", state: "ca", salary: 130000 });
+    expect(opts.headers.apikey).toBeTruthy();
+  });
+
+  it("flags source 'unavailable' and returns an empty shape on failure", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network")));
+    const { data, source } = await fetchData("perm");
+    expect(source).toBe("unavailable");
+    expect(data).toEqual({ summary: {}, byYear: [], byStatus: [], topEmployers: [], topOccupations: [] });
+  });
+
+  it("treats a non-2xx response as unavailable", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 500 }));
+    const { source } = await fetchData("overview");
+    expect(source).toBe("unavailable");
+  });
+
+  it("short-circuits employer search under 2 characters without a request", async () => {
+    const fetchMock = mockRpc({ employers: [] });
+    vi.stubGlobal("fetch", fetchMock);
+    const { data, source } = await fetchData("employers", { q: "a" });
+    expect(source).toBe("live");
+    expect(data.employers).toEqual([]);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("maps employer id to emp_id", async () => {
+    const fetchMock = mockRpc({ employer: { id: 3 } });
+    vi.stubGlobal("fetch", fetchMock);
+    await fetchData("employer", { id: 3 });
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ emp_id: 3 });
   });
 });

@@ -401,21 +401,104 @@
 .employer-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
-  padding: 12px 16px;
+  padding: 4px 12px 4px 14px;
   background: #fff;
   border: 1px solid #e5e7eb;
   border-radius: 10px;
-  cursor: pointer;
-  text-align: left;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
   font-size: 14px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .employer-row:hover {
   border-color: #2563eb;
   box-shadow: 0 2px 8px rgba(37, 99, 235, 0.12);
+}
+
+.compare-check {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.compare-check input {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.employer-row-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 2px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-size: 14px;
+}
+
+/* Comparison selection bar */
+.compare-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  font-size: 13px;
+  color: #1e3a8a;
+}
+
+.compare-bar-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Comparison table */
+.compare-scroll {
+  overflow-x: auto;
+}
+
+.compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  min-width: 480px;
+}
+
+.compare-table th,
+.compare-table td {
+  border: 1px solid #e5e7eb;
+  padding: 10px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.compare-table thead th {
+  background: #f9fafb;
+  font-weight: 700;
+  color: #111827;
+}
+
+.compare-table tbody th {
+  background: #f9fafb;
+  font-weight: 600;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+.compare-table td.compare-best {
+  background: #ecfdf5;
+  font-weight: 700;
+  color: #065f46;
 }
 
 .employer-name {

@@ -12,10 +12,11 @@ which Department of Labor wage **Level (I–IV)** that salary qualifies for in t
 - Live site: https://h1b-wage-tracker.vercel.app/ (deployed on Vercel)
 - The **wage map** is pure frontend — static JSON/GeoJSON served from `public/`, fetched at
   runtime, no server required.
-- A second feature, the **Data Explorer** (LCA / PERM / USCIS disclosure data), is backed by
-  **Vercel serverless functions** (`api/`) over a **Neon Postgres** database. It degrades
-  gracefully to clearly-labeled sample data when the database isn't configured, so the static
-  app still works without a backend.
+- A second feature, the **Data Explorer** (LCA / PERM / USCIS disclosure data), reads **real data
+  directly from Supabase Postgres** via read-only PostgREST RPC functions (`public.h1b_*`) using
+  the public *publishable* key — no Vercel serverless functions, no server secret. There is **no
+  synthetic/sample data**: if the database is unreachable the UI says "Data unavailable" rather
+  than show fabricated numbers.
 - Data sources: DOL OFLC prevailing wage data (map); DOL OFLC LCA/PERM disclosure files +
   USCIS H-1B Employer Data Hub (explorer). All are periodic public releases — **not real-time**.
 
@@ -30,8 +31,9 @@ npm test               # run the Vitest suite once
 npm run test:watch     # Vitest in watch mode
 npm run test:coverage  # Vitest with v8 coverage
 
-# Disclosure-data ingestion (requires DATABASE_URL; see Data Explorer below)
-psql "$DATABASE_URL" -f db/schema.sql                      # create tables
+# Disclosure-data ingestion (Supabase Postgres; SUPABASE_DB_URL = project Postgres URL)
+psql "$SUPABASE_DB_URL" -f db/schema.sql                  # create the h1b schema + tables
+psql "$SUPABASE_DB_URL" -f db/rpc.sql                     # create the read-only RPC functions
 node db/ingest.mjs lca   path/to/LCA.csv  "FY2024 Q3" # load LCA filings
 node db/ingest.mjs perm  path/to/PERM.csv "FY2024 Q3" # load PERM filings
 node db/ingest.mjs uscis path/to/hub.csv  "FY2024"    # load USCIS hub
@@ -41,16 +43,17 @@ There is **no lint script** defined in `package.json`.
 
 ### Environment variables
 
-| Variable            | Required?              | Purpose                                                        |
-| ------------------- | ---------------------- | -------------------------------------------------------------- |
-| `VITE_MAPBOX_TOKEN` | **Yes** (for the map)  | Mapbox GL token. Missing → "Configuration Error" screen.       |
-| `DATABASE_URL`      | No (explorer fallback) | Neon Postgres connection. Set by the Vercel Neon integration.  |
+| Variable                 | Required?             | Purpose                                                              |
+| ------------------------ | --------------------- | -------------------------------------------------------------------- |
+| `VITE_MAPBOX_TOKEN`      | **Yes** (for the map) | Mapbox GL token. Missing → "Configuration Error" screen.             |
+| `VITE_SUPABASE_URL`      | No (defaults baked)   | Supabase project URL for the Data Explorer.                          |
+| `VITE_SUPABASE_ANON_KEY` | No (defaults baked)   | Supabase **publishable** key (public/browser-safe; read-only RPCs).  |
+| `SUPABASE_DB_URL`        | Ingestion only        | Postgres connection string used by `db/ingest.mjs` on a real machine.|
 
-Copy `.env.example` → `.env` (gitignored). `src/utils/env.js#validateEnv()` enforces the Mapbox
-token at startup (`src/main.jsx`, `src/hooks/useMapboxMap.js`); in production a missing token
-renders a "Configuration Error" screen. The API helper `api/_db.js` reads `DATABASE_URL` (and the
-`POSTGRES_URL` / `*_UNPOOLED` aliases the Vercel Neon integration may set); when absent, API routes
-return `{ configured: false }` and the Data Explorer shows sample data.
+`src/utils/env.js#validateEnv()` enforces the Mapbox token at startup. The Supabase URL + publishable
+key are committed defaults in `src/utils/supabase.js` (the publishable key is **not** a secret), so the
+Data Explorer works on the static deploy with no server env. Override them with the `VITE_*` vars if
+pointing at a different project.
 
 ## Tech Stack
 
@@ -59,8 +62,8 @@ return `{ configured: false }` and the Data Explorer shows sample data.
   separate vendor chunks via `manualChunks` for better caching)
 - **Vitest + @testing-library/react + jest-dom + jsdom** (test harness; `vitest.config.js`)
 - **Mapbox GL JS 3.5** (map rendering)
-- **Vercel serverless functions** (`api/*.js`, Node runtime) for the Data Explorer API
-- **Neon Postgres** via **@neondatabase/serverless** (HTTP driver, edge-friendly)
+- **Supabase Postgres** for the Data Explorer — read directly from the browser via PostgREST RPC
+  (`public.h1b_*` functions) with the publishable key. No serverless functions, no Neon.
 - **PropTypes** for runtime prop validation (project is JS, not TypeScript)
 - **@vercel/analytics** for web analytics
 - Plain CSS files imported per-component (no CSS-in-JS framework, no Tailwind). No chart library —
@@ -104,24 +107,21 @@ disclosure data.
 
 ```
 DataExplorer (overlay, tab nav)
-  ├─ OverviewTab    → /api/overview    (totals, top states)
-  ├─ EmployerTab    → /api/employers   → /api/employer?id=  (search → profile)
-  ├─ OccupationTab  → /api/occupation  (SOC pivot: sponsors, wage trend, geography)
-  ├─ PermTab        → /api/perm        (PERM aggregates, filters: state/soc)
-  ├─ WagesTab       → /api/wages       (filed-wage percentiles, salary ranking)
-  └─ UscisTab       → /api/uscis       (approvals/denials, approval rate)
+  ├─ OverviewTab    → rpc h1b_overview    (totals, top states)
+  ├─ EmployerTab    → rpc h1b_employers   → h1b_employer  (search → profile; compare up to 3)
+  ├─ OccupationTab  → rpc h1b_occupation  (SOC pivot: sponsors, wage trend, geography)
+  ├─ PermTab        → rpc h1b_perm        (PERM aggregates, filters: state/soc)
+  ├─ WagesTab       → rpc h1b_wages       (filed-wage percentiles, salary ranking)
+  └─ UscisTab       → rpc h1b_uscis       (approvals/denials, approval rate)
 ```
 
-- **API client**: `src/utils/api.js#fetchData(endpoint, params)` returns `{ data, source }`.
-  `source` is `"live"` (Neon-backed) or `"sample"` (API unconfigured/unreachable → falls back to
-  `src/data/sampleData.js`, shown with a visible **Sample data** banner so synthetic numbers are
-  never passed off as real). `src/components/explorer/useExplorerData.js` wraps it as a hook and
-  reports the source up to the overlay.
-- **Serverless API** (`api/*.js`, Vercel Node functions): each route wraps its handler with
-  `withDb()` from `api/_db.js`, which injects the Neon `sql` client, sets edge-cache headers,
-  and short-circuits to `{ configured: false }` when no `DATABASE_URL` is set. Queries use Neon
-  tagged-template interpolation (parameterized — injection-safe). Files prefixed `_` (e.g.
-  `_db.js`) are **not** exposed as routes.
+- **API client**: `src/utils/api.js#fetchData(endpoint, params)` maps each endpoint to a Supabase
+  RPC (`src/utils/supabase.js#callRpc`) and returns `{ data, source }`. `source` is `"live"` or
+  `"unavailable"` (request failed → empty shape + a "Data unavailable" banner; **never** synthetic
+  data). `src/components/explorer/useExplorerData.js` wraps it as a hook and reports the source up.
+- **Database**: a dedicated `h1b` schema (tables in `db/schema.sql`) read via SECURITY DEFINER
+  RPC functions in `public` (`db/rpc.sql`), granted to the `anon` role. Only the aggregate RPCs are
+  exposed — raw tables are not. Queries are parameterized (injection-safe).
 - **No chart library**: visuals are CSS bar charts / stat cards in
   `src/components/explorer/primitives.jsx` (which also exports `ExportButton` and `FreshnessBadge`),
   plus dependency-free SVG trend lines for year-over-year series
@@ -141,9 +141,8 @@ DataExplorer (overlay, tab nav)
   the `ExplorerLoading` skeleton (respects `prefers-reduced-motion`).
 - **CSV export**: tab tables export via `src/utils/csv.js` (`toCsv` / `downloadCsv`).
 - **Freshness**: the header `FreshnessBadge` shows "data as of" labels from `dataset_meta`
-  (via `/api/overview` `meta`). A **Live/Sample status pill** reflects whether responses came from
-  Neon or the sample fallback. `GET /api/health` reports `{ configured, connected, counts,
-  datasets }` for verifying the DB after connecting Neon + running ingestion.
+  (via the `h1b_overview` `meta`). A **Live/Unavailable status pill** reflects whether the database
+  responded. The `h1b_health()` RPC reports `{ counts, datasets }` for verifying ingestion.
 
 ### Data model (important)
 
@@ -156,11 +155,11 @@ DataExplorer (overlay, tab nav)
 - **`public/counties.geojson`** — ~9.8 MB GeoJSON of all U.S. counties. Features carry `STATEFP`
   (FIPS) and `NAME` properties.
 
-**Disclosure database (`db/schema.sql`)** — Postgres tables for the Data Explorer:
-`employers` (deduped by `normalized_name`, joined to everything), `lca_filings` (H-1B/ETA-9035),
-`perm_filings` (ETA-9089), `uscis_hub` (USCIS approvals/denials by FY), and `dataset_meta`
-("data as of" bookkeeping). Populated by `db/ingest.mjs` from official DOL/USCIS CSVs — adjust
-the script's `COLUMN_MAPS`/field references if a future release renames columns.
+**Disclosure database (`db/schema.sql`, `h1b` schema in Supabase)** — `employers` (deduped by
+`normalized_name`), `lca_filings` (H-1B/ETA-9035), `perm_filings` (ETA-9089), `uscis_hub` (USCIS
+approvals/denials by FY), and `dataset_meta` ("data as of" bookkeeping). Read only through the
+`public.h1b_*` RPC functions (`db/rpc.sql`). Populated by `db/ingest.mjs` from official DOL/USCIS
+CSVs — adjust the script's field references if a future release renames columns.
 
 ### The county-matching key (do not break this)
 
@@ -180,14 +179,10 @@ the same normalization**, or counties silently fall through to "no data" (gray).
 ## Directory Layout
 
 ```
-api/                        # Vercel serverless functions (Data Explorer API)
-  _db.js                    # Neon client + withDb() wrapper (not a route)
-  overview.js employers.js employer.js occupation.js perm.js wages.js uscis.js
-  health.js                 # DB connectivity + row counts (operational check)
 db/
-  schema.sql                # Postgres schema for disclosure data
-scripts/
-  ingest.mjs                # DOL/USCIS CSV → Neon ingestion pipeline
+  schema.sql                # h1b schema + tables (Supabase Postgres)
+  rpc.sql                   # read-only public.h1b_* RPC functions (anon-exposed)
+  ingest.mjs                # DOL/USCIS CSV → Supabase ingestion (real-machine full loads)
 public/
   counties.geojson          # U.S. county polygons (large)
   data/
@@ -200,8 +195,6 @@ src/
   SocAutocomplete.jsx       # occupation search dropdown (fetches soc_codes.json)
   stateFpToAbbr.js          # FIPS code → state abbreviation map
   index.css                 # global styles
-  data/
-    sampleData.js           # illustrative explorer fallback data (synthetic)
   components/               # UI components (PropTypes-validated)
     ControlPanel.jsx        # composed of PanelHeader/PanelContent/PanelFooter
     StatisticsPanel.jsx, Legend.jsx, SalaryInput.jsx, OccupationSelector.jsx
@@ -223,7 +216,8 @@ src/
     panelConstants.js       # localStorage keys, panel constants
     currency.js             # formatCurrency / parseCurrency / validateSalary
     format.js               # explorer display formatting (compact/USD/pct/ordinal)
-    api.js                  # Data Explorer fetch client + sample fallback
+    supabase.js             # Supabase URL + publishable key + callRpc()
+    api.js                  # Data Explorer fetch client (endpoint → RPC; no sample data)
     csv.js                  # CSV serialize + browser download
     explorerUrl.js          # explorer deep-link (?view=&tab=) read/write
     normalize.js            # county-name normalization (see above)
@@ -273,13 +267,12 @@ Notes for writing tests:
 
 ## Deployment
 
-Deployed to **Vercel** (`.vercel/` present). `npm run build` emits the static `dist/`; Vercel also
-auto-deploys each file in `api/` as a Node serverless function (no `vercel.json` needed). Set
-`VITE_MAPBOX_TOKEN` in the hosting environment. For the Data Explorer, add the **Neon integration**
-(Vercel dashboard → Storage → Neon) which provisions `DATABASE_URL`; then apply `db/schema.sql` and
-run `db/ingest.mjs` to load data. Without Neon, the explorer shows sample data and the rest of
-the app is unaffected. The static map alone can also be hosted on Netlify / GitHub Pages (the API
-routes require a serverless host like Vercel).
+Deployed to **Vercel** (`.vercel/` present) as a fully static build — `npm run build` emits `dist/`;
+there are no serverless functions. Set `VITE_MAPBOX_TOKEN` in the hosting environment. The Data
+Explorer talks to **Supabase** directly from the browser using the committed publishable key, so no
+server secret is required and it works on any static host (Netlify, GitHub Pages, etc.). To load/refresh
+data: apply `db/schema.sql` + `db/rpc.sql` to the Supabase project, then run `db/ingest.mjs` with
+`SUPABASE_DB_URL` against the official DOL/USCIS files.
 
 ## Reference Docs in Repo
 

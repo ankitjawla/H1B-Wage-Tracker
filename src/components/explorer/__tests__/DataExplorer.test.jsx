@@ -6,12 +6,12 @@ describe("DataExplorer accessibility & navigation", () => {
   beforeEach(() => {
     // jsdom lacks scrollIntoView (used by some inputs); stub it.
     Element.prototype.scrollIntoView = vi.fn();
-    // Unconfigured API → sample data path, no real network.
+    // Supabase RPC returns a valid (empty) overview payload.
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue({
         ok: true,
-        json: () => Promise.resolve({ configured: false, source: "unconfigured" }),
+        json: () => Promise.resolve({ totals: {}, topStates: [], meta: [] }),
       })
     );
     window.history.replaceState({}, "", "/");
@@ -63,9 +63,15 @@ describe("DataExplorer accessibility & navigation", () => {
     );
   });
 
-  it("shows a 'Sample data' pill when the API is unconfigured", async () => {
+  it("shows a 'Live data' pill when the database responds", async () => {
     render(<DataExplorer isOpen onClose={vi.fn()} />);
-    await waitFor(() => expect(screen.getByText("Sample data")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText("Live data")).toBeInTheDocument());
+  });
+
+  it("shows 'Data unavailable' when the database can't be reached", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network")));
+    render(<DataExplorer isOpen onClose={vi.fn()} />);
+    await waitFor(() => expect(screen.getByText("Data unavailable")).toBeInTheDocument());
   });
 
   it("calls onClose on Escape", () => {
