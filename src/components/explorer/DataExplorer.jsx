@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import PropTypes from "prop-types";
 import CloseIcon from "../icons/CloseIcon";
-import { SampleBanner, FreshnessBadge } from "./primitives";
+import { UnavailableBanner, FreshnessBadge } from "./primitives";
 import { useExplorerData } from "./useExplorerData";
 import { readExplorerUrl, writeExplorerUrl } from "../../utils/explorerUrl";
 import OverviewTab from "./OverviewTab";
@@ -150,15 +150,15 @@ export default function DataExplorer({ isOpen, onClose }) {
         </div>
         <div className="explorer-header-right">
           <span
-            className={`source-pill ${source === "sample" ? "sample" : "live"}`}
+            className={`source-pill ${source === "unavailable" ? "sample" : "live"}`}
             title={
-              source === "sample"
-                ? "Live database not connected — showing sample data"
-                : "Served from the live disclosure database"
+              source === "unavailable"
+                ? "The disclosure database couldn't be reached"
+                : "Served live from the disclosure database"
             }
           >
             <span className="source-dot" aria-hidden="true" />
-            {source === "sample" ? "Sample data" : "Live data"}
+            {source === "unavailable" ? "Data unavailable" : "Live data"}
           </span>
           <FreshnessBadge meta={overview?.meta} />
           <button className="explorer-close" onClick={onClose} aria-label="Close data explorer">
@@ -194,7 +194,7 @@ export default function DataExplorer({ isOpen, onClose }) {
         aria-labelledby={`explorer-tab-${active}`}
         tabIndex={0}
       >
-        {source === "sample" && <SampleBanner />}
+        {source === "unavailable" && <UnavailableBanner />}
         <TabBody onSource={handleSource} />
       </div>
     </div>
