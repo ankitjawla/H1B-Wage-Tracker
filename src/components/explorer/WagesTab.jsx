@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
-import { StatCard, BarList, Section } from "./primitives";
+import { StatCard, BarList, Section, ExportButton } from "./primitives";
 import { useExplorerData } from "./useExplorerData";
 import { useDebounce } from "../../hooks/useDebounce";
 import { formatNumber, formatUSD, ordinal } from "../../utils/format";
@@ -82,7 +82,18 @@ export default function WagesTab({ onSource }) {
                 />
               </div>
               <div>
-                <h4 className="explorer-subhead">Median wage by state</h4>
+                <div className="explorer-subhead-row">
+                  <h4 className="explorer-subhead">Median wage by state</h4>
+                  <ExportButton
+                    rows={data.byState ?? []}
+                    columns={[
+                      { key: "state", label: "State" },
+                      { key: "medianWage", label: "Median filed wage" },
+                      { key: "count", label: "Filings" },
+                    ]}
+                    filename="lca-median-wage-by-state"
+                  />
+                </div>
                 <BarList
                   formatValue={formatUSD}
                   items={(data.byState ?? []).map((x) => ({

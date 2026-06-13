@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
-import { StatCard, BarList, Section } from "./primitives";
+import { StatCard, BarList, Section, ExportButton } from "./primitives";
 import { useExplorerData } from "./useExplorerData";
 import { formatNumber, formatUSD, formatPct } from "../../utils/format";
 
@@ -69,7 +69,19 @@ export default function PermTab({ onSource }) {
               items={(data.topEmployers ?? []).map((e) => ({ key: e.id, label: e.name, value: e.count }))}
             />
 
-            <h4 className="explorer-subhead">Top occupations</h4>
+            <div className="explorer-subhead-row">
+              <h4 className="explorer-subhead">Top occupations</h4>
+              <ExportButton
+                rows={data.topOccupations ?? []}
+                columns={[
+                  { key: "socCode", label: "SOC code" },
+                  { key: "socTitle", label: "Occupation" },
+                  { key: "count", label: "Filings" },
+                  { key: "medianWage", label: "Median wage offer" },
+                ]}
+                filename="perm-top-occupations"
+              />
+            </div>
             <BarList
               color="#60A5FA"
               items={(data.topOccupations ?? []).map((o) => ({

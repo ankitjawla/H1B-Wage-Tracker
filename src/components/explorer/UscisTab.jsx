@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
-import { StatCard, BarList, Section } from "./primitives";
+import { StatCard, BarList, Section, ExportButton } from "./primitives";
 import { useExplorerData } from "./useExplorerData";
 import { useDebounce } from "../../hooks/useDebounce";
 import { formatNumber, formatPct } from "../../utils/format";
@@ -46,7 +46,18 @@ export default function UscisTab({ onSource }) {
               }))}
             />
 
-            <h4 className="explorer-subhead">Top employers by approvals</h4>
+            <div className="explorer-subhead-row">
+              <h4 className="explorer-subhead">Top employers by approvals</h4>
+              <ExportButton
+                rows={data.topEmployers ?? []}
+                columns={[
+                  { key: "name", label: "Employer" },
+                  { key: "approvals", label: "Approvals" },
+                  { key: "denials", label: "Denials" },
+                ]}
+                filename="uscis-top-employers"
+              />
+            </div>
             <BarList
               color="#2563EB"
               items={(data.topEmployers ?? []).map((e) => ({

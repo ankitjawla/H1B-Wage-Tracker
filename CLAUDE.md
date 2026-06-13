@@ -121,7 +121,12 @@ DataExplorer (overlay, tab nav)
   tagged-template interpolation (parameterized — injection-safe). Files prefixed `_` (e.g.
   `_db.js`) are **not** exposed as routes.
 - **No chart library**: visuals are CSS bar charts / stat cards in
-  `src/components/explorer/primitives.jsx`.
+  `src/components/explorer/primitives.jsx` (which also exports `ExportButton` and `FreshnessBadge`).
+- **Deep-linkable**: open state + active tab are encoded in the URL (`?view=explorer&tab=perm`) via
+  `src/utils/explorerUrl.js` and restored on load — shareable alongside the map's `?soc=&salary=`.
+- **CSV export**: tab tables export via `src/utils/csv.js` (`toCsv` / `downloadCsv`).
+- **Freshness**: the header `FreshnessBadge` shows "data as of" labels from `dataset_meta`
+  (via `/api/overview` `meta`).
 
 ### Data model (important)
 
@@ -201,6 +206,8 @@ src/
     currency.js             # formatCurrency / parseCurrency / validateSalary
     format.js               # explorer display formatting (compact/USD/pct/ordinal)
     api.js                  # Data Explorer fetch client + sample fallback
+    csv.js                  # CSV serialize + browser download
+    explorerUrl.js          # explorer deep-link (?view=&tab=) read/write
     normalize.js            # county-name normalization (see above)
     env.js                  # env var validation
     userTracking.js         # localStorage user/session tracking + admin exports

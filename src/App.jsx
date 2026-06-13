@@ -6,12 +6,23 @@ import WelcomeModal from "./components/WelcomeModal";
 import AdminPanel from "./components/AdminPanel";
 import DataExplorer from "./components/explorer/DataExplorer";
 import { hasSeenWelcome } from "./utils/userTracking";
+import { readExplorerUrl, writeExplorerUrl } from "./utils/explorerUrl";
 
 export default function App() {
   const [showWelcome, setShowWelcome] = useState(false);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
-  const [showExplorer, setShowExplorer] = useState(false);
+  // Restore explorer open state from the URL (?view=explorer) for shareable links
+  const [showExplorer, setShowExplorer] = useState(() => readExplorerUrl().open);
   const [appReady, setAppReady] = useState(false);
+
+  const openExplorer = () => {
+    setShowExplorer(true);
+    writeExplorerUrl({ open: true, tab: readExplorerUrl().tab });
+  };
+  const closeExplorer = () => {
+    setShowExplorer(false);
+    writeExplorerUrl({ open: false });
+  };
 
   // Check if user has seen welcome screen on mount
   useEffect(() => {
@@ -64,14 +75,14 @@ export default function App() {
         {appReady && (
           <button
             className="explorer-launch"
-            onClick={() => setShowExplorer(true)}
+            onClick={openExplorer}
             aria-label="Open H1B and PERM data explorer"
           >
             <span aria-hidden="true">📊</span>
             <span className="label">Data Explorer</span>
           </button>
         )}
-        <DataExplorer isOpen={showExplorer} onClose={() => setShowExplorer(false)} />
+        <DataExplorer isOpen={showExplorer} onClose={closeExplorer} />
         <WelcomeModal isOpen={showWelcome} onContinue={handleWelcomeContinue} />
         <AdminPanel isOpen={showAdminPanel} onClose={handleAdminPanelClose} />
         <Analytics />
