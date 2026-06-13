@@ -1,7 +1,9 @@
 import React, { useEffect, useState, useCallback } from "react";
 import PropTypes from "prop-types";
 import CloseIcon from "../icons/CloseIcon";
-import { SampleBanner } from "./primitives";
+import { SampleBanner, FreshnessBadge } from "./primitives";
+import { useExplorerData } from "./useExplorerData";
+import { readExplorerUrl, writeExplorerUrl } from "../../utils/explorerUrl";
 import OverviewTab from "./OverviewTab";
 import EmployerTab from "./EmployerTab";
 import PermTab from "./PermTab";
@@ -23,8 +25,18 @@ const TABS = [
  * @param {Function} onClose
  */
 export default function DataExplorer({ isOpen, onClose }) {
-  const [active, setActive] = useState("overview");
+  // Restore active tab from the URL (?tab=) for shareable deep links
+  const [active, setActive] = useState(() => readExplorerUrl().tab);
   const [source, setSource] = useState("live");
+
+  // Lightweight overview fetch purely for the header "data as of" badge
+  const { data: overview } = useExplorerData("overview", {}, undefined, isOpen);
+
+  // Keep the URL in sync with the active tab while the explorer is open
+  const selectTab = useCallback((tab) => {
+    setActive(tab);
+    writeExplorerUrl({ open: true, tab });
+  }, []);
 
   // Close on Escape
   useEffect(() => {
@@ -59,9 +71,12 @@ export default function DataExplorer({ isOpen, onClose }) {
             <p>LCA, PERM &amp; USCIS disclosure data for applicants, employees &amp; employers</p>
           </div>
         </div>
-        <button className="explorer-close" onClick={onClose} aria-label="Close data explorer">
-          <CloseIcon />
-        </button>
+        <div className="explorer-header-right">
+          <FreshnessBadge meta={overview?.meta} />
+          <button className="explorer-close" onClick={onClose} aria-label="Close data explorer">
+            <CloseIcon />
+          </button>
+        </div>
       </header>
 
       <nav className="explorer-tabs" role="tablist">
@@ -71,7 +86,7 @@ export default function DataExplorer({ isOpen, onClose }) {
             role="tab"
             aria-selected={active === t.id}
             className={`explorer-tab ${active === t.id ? "active" : ""}`}
-            onClick={() => setActive(t.id)}
+            onClick={() => selectTab(t.id)}
           >
             {t.label}
           </button>

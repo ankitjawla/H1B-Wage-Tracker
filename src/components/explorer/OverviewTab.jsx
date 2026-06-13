@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { StatCard, BarList, Section } from "./primitives";
+import { StatCard, BarList, Section, ExportButton } from "./primitives";
 import { useExplorerData } from "./useExplorerData";
 import { formatCompact, formatNumber } from "../../utils/format";
 
@@ -28,6 +28,17 @@ export default function OverviewTab({ onSource }) {
       </Section>
 
       <Section title="Top states by LCA volume">
+        <div className="explorer-subhead-row">
+          <span />
+          <ExportButton
+            rows={data.topStates ?? []}
+            columns={[
+              { key: "state", label: "State" },
+              { key: "count", label: "LCA filings" },
+            ]}
+            filename="lca-top-states"
+          />
+        </div>
         <BarList
           items={(data.topStates ?? []).map((s) => ({ key: s.state, label: s.state, value: s.count }))}
           formatValue={formatNumber}
