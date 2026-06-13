@@ -38,30 +38,27 @@ These datasets are **periodic public releases — not real-time**:
 - **DOL OFLC LCA & PERM disclosure data** — released quarterly ([DOL Performance Data](https://www.dol.gov/agencies/eta/foreign-labor/performance))
 - **USCIS H-1B Employer Data Hub** — released annually ([USCIS Data Hub](https://www.uscis.gov/tools/reports-and-studies/h-1b-employer-data-hub))
 
-### Backend (Supabase Postgres)
+### Backend (Neon Postgres via Vercel serverless)
 
-The Explorer reads **real data directly from Supabase** in the browser, via read-only PostgREST RPC
-functions (`public.h1b_*`) and the public *publishable* key (safe to ship in the bundle). There is no
-serverless backend and **no synthetic/sample data** — if the database can't be reached the UI shows
+The Explorer reads **real data** from a **Neon Postgres** database through Vercel serverless functions
+(`api/*`) that hold the `DATABASE_URL` secret (the browser never sees it). There is **no
+synthetic/sample data** — if the database isn't configured or can't be reached, the UI shows
 "Data unavailable" rather than fabricated numbers.
 
-To load or refresh the data:
+To enable live data:
 
-1. Apply the schema and RPCs to the Supabase project:
+1. Create a Neon database and set `DATABASE_URL` in Vercel (Settings → Environment Variables, or
+   `vercel env add DATABASE_URL`).
+2. Apply the schema: `psql "$DATABASE_URL" -f db/schema.sql`
+3. Download the DOL/USCIS files (links above), export to CSV, and load them:
    ```bash
-   psql "$SUPABASE_DB_URL" -f db/schema.sql   # h1b schema + tables
-   psql "$SUPABASE_DB_URL" -f db/rpc.sql      # read-only RPC functions
-   ```
-2. Download the DOL/USCIS files (links above), export to CSV, and load them:
-   ```bash
-   SUPABASE_DB_URL=postgres://... node db/ingest.mjs lca   path/to/LCA_FY2024.csv   "FY2024 Q3"
-   SUPABASE_DB_URL=postgres://... node db/ingest.mjs perm  path/to/PERM_FY2024.csv  "FY2024 Q3"
-   SUPABASE_DB_URL=postgres://... node db/ingest.mjs uscis path/to/hub_FY2024.csv   "FY2024"
+   DATABASE_URL=postgres://... node db/ingest.mjs lca   path/to/LCA_FY2024.csv   "FY2024 Q3"
+   DATABASE_URL=postgres://... node db/ingest.mjs perm  path/to/PERM_FY2024.csv  "FY2024 Q3"
+   DATABASE_URL=postgres://... node db/ingest.mjs uscis path/to/hub_FY2024.csv   "FY2024"
    ```
 
-`SUPABASE_DB_URL` is the project's Postgres connection string (Supabase dashboard → Settings → Database).
-To point the app at a different Supabase project, set `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`
-(see `.env.example`).
+Verify with `GET /api/health` (reports connectivity + row counts). For local dev, put `DATABASE_URL`
+in `.env` (see `.env.example`).
 
 ## 📋 Prerequisites
 
