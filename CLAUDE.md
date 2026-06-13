@@ -141,7 +141,9 @@ DataExplorer (overlay, tab nav)
   the `ExplorerLoading` skeleton (respects `prefers-reduced-motion`).
 - **CSV export**: tab tables export via `src/utils/csv.js` (`toCsv` / `downloadCsv`).
 - **Freshness**: the header `FreshnessBadge` shows "data as of" labels from `dataset_meta`
-  (via `/api/overview` `meta`).
+  (via `/api/overview` `meta`). A **Live/Sample status pill** reflects whether responses came from
+  Neon or the sample fallback. `GET /api/health` reports `{ configured, connected, counts,
+  datasets }` for verifying the DB after connecting Neon + running ingestion.
 
 ### Data model (important)
 
@@ -181,6 +183,7 @@ the same normalization**, or counties silently fall through to "no data" (gray).
 api/                        # Vercel serverless functions (Data Explorer API)
   _db.js                    # Neon client + withDb() wrapper (not a route)
   overview.js employers.js employer.js occupation.js perm.js wages.js uscis.js
+  health.js                 # DB connectivity + row counts (operational check)
 db/
   schema.sql                # Postgres schema for disclosure data
 scripts/

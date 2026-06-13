@@ -63,6 +63,11 @@ describe("DataExplorer accessibility & navigation", () => {
     );
   });
 
+  it("shows a 'Sample data' pill when the API is unconfigured", async () => {
+    render(<DataExplorer isOpen onClose={vi.fn()} />);
+    await waitFor(() => expect(screen.getByText("Sample data")).toBeInTheDocument());
+  });
+
   it("calls onClose on Escape", () => {
     const onClose = vi.fn();
     render(<DataExplorer isOpen onClose={onClose} />);
