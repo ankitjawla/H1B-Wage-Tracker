@@ -234,6 +234,42 @@
   margin-top: 2px;
 }
 
+/* Line chart */
+.line-chart {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px 14px 8px;
+}
+
+.line-chart-svg {
+  width: 100%;
+  height: 80px;
+  display: block;
+}
+
+.line-chart-axis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  font-size: 11px;
+  color: #9ca3af;
+  font-variant-numeric: tabular-nums;
+}
+
+.line-chart-tick {
+  flex: 1;
+  text-align: center;
+}
+
+.line-chart-tick:first-child {
+  text-align: left;
+}
+
+.line-chart-tick:last-child {
+  text-align: right;
+}
+
 /* Bar list */
 .bar-list {
   display: flex;

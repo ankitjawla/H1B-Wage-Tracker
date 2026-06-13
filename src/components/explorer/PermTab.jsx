@@ -1,6 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { StatCard, BarList, Section, ExportButton } from "./primitives";
+import LineChart from "./LineChart";
 import { useExplorerData } from "./useExplorerData";
 import { useUrlFilter } from "./useUrlFilter";
 import { formatNumber, formatUSD, formatPct } from "../../utils/format";
@@ -51,8 +52,9 @@ export default function PermTab({ onSource }) {
             <div className="explorer-two-col">
               <div>
                 <h4 className="explorer-subhead">Filings by fiscal year</h4>
-                <BarList
-                  items={(data.byYear ?? []).map((y) => ({ key: y.fy, label: `FY${y.fy}`, value: y.count }))}
+                <LineChart
+                  color="#1E3A8A"
+                  data={(data.byYear ?? []).map((y) => ({ label: `FY${y.fy}`, value: y.count }))}
                 />
               </div>
               <div>

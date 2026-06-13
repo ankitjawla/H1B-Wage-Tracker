@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
 import { StatCard, BarList, Section, ExportButton } from "./primitives";
+import LineChart from "./LineChart";
 import { useExplorerData } from "./useExplorerData";
 import { useDebounce } from "../../hooks/useDebounce";
 import { formatNumber, formatPct } from "../../utils/format";
@@ -37,10 +38,9 @@ export default function UscisTab({ onSource }) {
             </div>
 
             <h4 className="explorer-subhead">Approvals by fiscal year</h4>
-            <BarList
+            <LineChart
               color="#16a34a"
-              items={(data.byYear ?? []).map((y) => ({
-                key: y.fy,
+              data={(data.byYear ?? []).map((y) => ({
                 label: `FY${y.fy}`,
                 value: y.initialApproval + y.continuingApproval,
               }))}

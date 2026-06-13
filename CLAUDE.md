@@ -121,7 +121,9 @@ DataExplorer (overlay, tab nav)
   tagged-template interpolation (parameterized — injection-safe). Files prefixed `_` (e.g.
   `_db.js`) are **not** exposed as routes.
 - **No chart library**: visuals are CSS bar charts / stat cards in
-  `src/components/explorer/primitives.jsx` (which also exports `ExportButton` and `FreshnessBadge`).
+  `src/components/explorer/primitives.jsx` (which also exports `ExportButton` and `FreshnessBadge`),
+  plus dependency-free SVG trend lines for year-over-year series
+  (`components/explorer/LineChart.jsx`; pure geometry in `src/utils/chart.js`).
 - **Deep-linkable**: open state + active tab are encoded in the URL (`?view=explorer&tab=perm`) via
   `src/utils/explorerUrl.js` and restored on load — shareable alongside the map's `?soc=&salary=`.
   Tab filters are also deep-linked, **namespaced `f_`** (`f_state`, `f_soc`, `f_salary`,
