@@ -4,11 +4,13 @@ import { Analytics } from "@vercel/analytics/react";
 import ErrorBoundary from "./components/ErrorBoundary";
 import WelcomeModal from "./components/WelcomeModal";
 import AdminPanel from "./components/AdminPanel";
+import DataExplorer from "./components/explorer/DataExplorer";
 import { hasSeenWelcome } from "./utils/userTracking";
 
 export default function App() {
   const [showWelcome, setShowWelcome] = useState(false);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const [showExplorer, setShowExplorer] = useState(false);
   const [appReady, setAppReady] = useState(false);
 
   // Check if user has seen welcome screen on mount
@@ -59,6 +61,17 @@ export default function App() {
     <ErrorBoundary>
       <div style={{ width: "100vw", height: "100vh" }}>
         {appReady && <Map />}
+        {appReady && (
+          <button
+            className="explorer-launch"
+            onClick={() => setShowExplorer(true)}
+            aria-label="Open H1B and PERM data explorer"
+          >
+            <span aria-hidden="true">📊</span>
+            <span className="label">Data Explorer</span>
+          </button>
+        )}
+        <DataExplorer isOpen={showExplorer} onClose={() => setShowExplorer(false)} />
         <WelcomeModal isOpen={showWelcome} onContinue={handleWelcomeContinue} />
         <AdminPanel isOpen={showAdminPanel} onClose={handleAdminPanelClose} />
         <Analytics />

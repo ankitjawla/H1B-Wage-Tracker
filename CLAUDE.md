@@ -10,9 +10,14 @@ occupation (SOC code) and enters an annual salary; the app colors each U.S. coun
 which Department of Labor wage **Level (I–IV)** that salary qualifies for in that county.
 
 - Live site: https://h1b-wage-tracker.vercel.app/ (deployed on Vercel)
-- Pure frontend — there is **no backend/server**. All data is static JSON/GeoJSON served
-  from `public/` and fetched at runtime.
-- Data source: DOL Office of Foreign Labor Certification (OFLC) prevailing wage data.
+- The **wage map** is pure frontend — static JSON/GeoJSON served from `public/`, fetched at
+  runtime, no server required.
+- A second feature, the **Data Explorer** (LCA / PERM / USCIS disclosure data), is backed by
+  **Vercel serverless functions** (`api/`) over a **Neon Postgres** database. It degrades
+  gracefully to clearly-labeled sample data when the database isn't configured, so the static
+  app still works without a backend.
+- Data sources: DOL OFLC prevailing wage data (map); DOL OFLC LCA/PERM disclosure files +
+  USCIS H-1B Employer Data Hub (explorer). All are periodic public releases — **not real-time**.
 
 ## Commands
 
@@ -24,21 +29,28 @@ npm run preview        # preview the production build locally
 npm test               # run the Vitest suite once
 npm run test:watch     # Vitest in watch mode
 npm run test:coverage  # Vitest with v8 coverage
+
+# Disclosure-data ingestion (requires DATABASE_URL; see Data Explorer below)
+psql "$DATABASE_URL" -f db/schema.sql                      # create tables
+node db/ingest.mjs lca   path/to/LCA.csv  "FY2024 Q3" # load LCA filings
+node db/ingest.mjs perm  path/to/PERM.csv "FY2024 Q3" # load PERM filings
+node db/ingest.mjs uscis path/to/hub.csv  "FY2024"    # load USCIS hub
 ```
 
 There is **no lint script** defined in `package.json`.
 
-### Required environment variable
+### Environment variables
 
-The map will not render without a Mapbox token. Create a `.env` file in the repo root:
+| Variable            | Required?              | Purpose                                                        |
+| ------------------- | ---------------------- | -------------------------------------------------------------- |
+| `VITE_MAPBOX_TOKEN` | **Yes** (for the map)  | Mapbox GL token. Missing → "Configuration Error" screen.       |
+| `DATABASE_URL`      | No (explorer fallback) | Neon Postgres connection. Set by the Vercel Neon integration.  |
 
-```env
-VITE_MAPBOX_TOKEN=your_mapbox_token_here
-```
-
-`.env` is gitignored. `src/utils/env.js#validateEnv()` enforces this at startup
-(`src/main.jsx` and `src/hooks/useMapboxMap.js`); in production a missing token renders a
-"Configuration Error" screen instead of the app.
+Copy `.env.example` → `.env` (gitignored). `src/utils/env.js#validateEnv()` enforces the Mapbox
+token at startup (`src/main.jsx`, `src/hooks/useMapboxMap.js`); in production a missing token
+renders a "Configuration Error" screen. The API helper `api/_db.js` reads `DATABASE_URL` (and the
+`POSTGRES_URL` / `*_UNPOOLED` aliases the Vercel Neon integration may set); when absent, API routes
+return `{ configured: false }` and the Data Explorer shows sample data.
 
 ## Tech Stack
 
@@ -47,9 +59,12 @@ VITE_MAPBOX_TOKEN=your_mapbox_token_here
   separate vendor chunks via `manualChunks` for better caching)
 - **Vitest + @testing-library/react + jest-dom + jsdom** (test harness; `vitest.config.js`)
 - **Mapbox GL JS 3.5** (map rendering)
+- **Vercel serverless functions** (`api/*.js`, Node runtime) for the Data Explorer API
+- **Neon Postgres** via **@neondatabase/serverless** (HTTP driver, edge-friendly)
 - **PropTypes** for runtime prop validation (project is JS, not TypeScript)
 - **@vercel/analytics** for web analytics
-- Plain CSS files imported per-component (no CSS-in-JS framework, no Tailwind)
+- Plain CSS files imported per-component (no CSS-in-JS framework, no Tailwind). No chart library —
+  the explorer uses lightweight CSS bar charts (`components/explorer/primitives.jsx`).
 
 ## Architecture & Data Flow
 
@@ -78,6 +93,35 @@ main.jsx → App.jsx → Map.jsx
    `fill-color` paint expression. Returns `updateLevels`, `stats`, `loading`, `error`, `clearError`.
    It also attaches annual threshold properties (`wageI`–`wageIV`) to each matched feature; the
    county click popup in `useMapboxMap` renders these as a Level I–IV threshold table.
+5. **`App.jsx`** also renders a floating **Data Explorer** launch button and the
+   `DataExplorer` overlay (see below) — a separate, backend-powered feature layered over the map.
+
+### Data Explorer (LCA / PERM / USCIS)
+
+A full-screen overlay (`src/components/explorer/DataExplorer.jsx`) with five tabs —
+**Overview, Employers, PERM, Salary Insights, USCIS Approvals** — over DOL/USCIS disclosure data.
+
+```
+DataExplorer (overlay, tab nav)
+  ├─ OverviewTab   → /api/overview   (totals, top states)
+  ├─ EmployerTab   → /api/employers  → /api/employer?id=  (search → profile)
+  ├─ PermTab       → /api/perm        (PERM aggregates, filters: state/soc)
+  ├─ WagesTab      → /api/wages       (filed-wage percentiles, salary ranking)
+  └─ UscisTab      → /api/uscis       (approvals/denials, approval rate)
+```
+
+- **API client**: `src/utils/api.js#fetchData(endpoint, params)` returns `{ data, source }`.
+  `source` is `"live"` (Neon-backed) or `"sample"` (API unconfigured/unreachable → falls back to
+  `src/data/sampleData.js`, shown with a visible **Sample data** banner so synthetic numbers are
+  never passed off as real). `src/components/explorer/useExplorerData.js` wraps it as a hook and
+  reports the source up to the overlay.
+- **Serverless API** (`api/*.js`, Vercel Node functions): each route wraps its handler with
+  `withDb()` from `api/_db.js`, which injects the Neon `sql` client, sets edge-cache headers,
+  and short-circuits to `{ configured: false }` when no `DATABASE_URL` is set. Queries use Neon
+  tagged-template interpolation (parameterized — injection-safe). Files prefixed `_` (e.g.
+  `_db.js`) are **not** exposed as routes.
+- **No chart library**: visuals are CSS bar charts / stat cards in
+  `src/components/explorer/primitives.jsx`.
 
 ### Data model (important)
 
@@ -89,6 +133,12 @@ main.jsx → App.jsx → Map.jsx
   Example: `"TX|callahan": { "I": 47.73, "II": 74.99, "III": 102.25, "IV": 129.51 }`.
 - **`public/counties.geojson`** — ~9.8 MB GeoJSON of all U.S. counties. Features carry `STATEFP`
   (FIPS) and `NAME` properties.
+
+**Disclosure database (`db/schema.sql`)** — Postgres tables for the Data Explorer:
+`employers` (deduped by `normalized_name`, joined to everything), `lca_filings` (H-1B/ETA-9035),
+`perm_filings` (ETA-9089), `uscis_hub` (USCIS approvals/denials by FY), and `dataset_meta`
+("data as of" bookkeeping). Populated by `db/ingest.mjs` from official DOL/USCIS CSVs — adjust
+the script's `COLUMN_MAPS`/field references if a future release renames columns.
 
 ### The county-matching key (do not break this)
 
@@ -108,6 +158,13 @@ the same normalization**, or counties silently fall through to "no data" (gray).
 ## Directory Layout
 
 ```
+api/                        # Vercel serverless functions (Data Explorer API)
+  _db.js                    # Neon client + withDb() wrapper (not a route)
+  overview.js employers.js employer.js perm.js wages.js uscis.js
+db/
+  schema.sql                # Postgres schema for disclosure data
+scripts/
+  ingest.mjs                # DOL/USCIS CSV → Neon ingestion pipeline
 public/
   counties.geojson          # U.S. county polygons (large)
   data/
@@ -115,17 +172,20 @@ public/
     soc/{SOC}.json          # per-occupation county→wage tables
 src/
   main.jsx                  # entry point, env validation
-  App.jsx                   # root: error boundary, welcome gate, admin panel
+  App.jsx                   # root: error boundary, welcome gate, admin panel, Data Explorer
   Map.jsx / Map.css         # orchestrator + map container styles
   SocAutocomplete.jsx       # occupation search dropdown (fetches soc_codes.json)
   stateFpToAbbr.js          # FIPS code → state abbreviation map
   index.css                 # global styles
+  data/
+    sampleData.js           # illustrative explorer fallback data (synthetic)
   components/               # UI components (PropTypes-validated)
     ControlPanel.jsx        # composed of PanelHeader/PanelContent/PanelFooter
     StatisticsPanel.jsx, Legend.jsx, SalaryInput.jsx, OccupationSelector.jsx
     ErrorBoundary.jsx, ErrorMessage.jsx, LoadingIndicator.jsx
     WelcomeModal.jsx, EducationModal.jsx, AdminPanel.jsx
     education/              # educational content components (FAQ, explainers)
+    explorer/              # Data Explorer overlay, tabs, hook, primitives, CSS
     icons/                  # small inline SVG icon components
     __tests__/              # component tests
   hooks/
@@ -139,6 +199,8 @@ src/
     constants.js            # HOURS_PER_YEAR, USA_BOUNDS, wage-level colors/names
     panelConstants.js       # localStorage keys, panel constants
     currency.js             # formatCurrency / parseCurrency / validateSalary
+    format.js               # explorer display formatting (compact/USD/pct/ordinal)
+    api.js                  # Data Explorer fetch client + sample fallback
     normalize.js            # county-name normalization (see above)
     env.js                  # env var validation
     userTracking.js         # localStorage user/session tracking + admin exports
@@ -186,9 +248,13 @@ Notes for writing tests:
 
 ## Deployment
 
-Deployed to **Vercel** (`.vercel/` present) as a static build. Set `VITE_MAPBOX_TOKEN` in the
-hosting platform's environment. `npm run build` emits `dist/`; the app is fully static and can
-also be hosted on Netlify, GitHub Pages, etc.
+Deployed to **Vercel** (`.vercel/` present). `npm run build` emits the static `dist/`; Vercel also
+auto-deploys each file in `api/` as a Node serverless function (no `vercel.json` needed). Set
+`VITE_MAPBOX_TOKEN` in the hosting environment. For the Data Explorer, add the **Neon integration**
+(Vercel dashboard → Storage → Neon) which provisions `DATABASE_URL`; then apply `db/schema.sql` and
+run `db/ingest.mjs` to load data. Without Neon, the explorer shows sample data and the rest of
+the app is unaffected. The static map alone can also be hosted on Netlify / GitHub Pages (the API
+routes require a serverless host like Vercel).
 
 ## Reference Docs in Repo
 

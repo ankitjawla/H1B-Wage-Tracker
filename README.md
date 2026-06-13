@@ -15,6 +15,47 @@ An interactive county-level choropleth map for exploring U.S. prevailing wages b
 - ♿ **Accessibility**: Screen reader friendly with ARIA labels and proper focus management
 - 💾 **State Persistence**: Panel collapse state persists across page reloads
 - 🎭 **Smooth Animations**: Polished UI with smooth transitions and animations
+- 🔗 **Shareable Views**: The selected occupation and salary are encoded in the URL (`?soc=&salary=`) so any view can be bookmarked or shared
+- 📊 **Data Explorer**: A dedicated overlay for exploring **LCA (H-1B)**, **PERM (green card)**, and **USCIS** disclosure data — by employer, occupation, location, wage percentile, and approval rate
+
+## 📊 Data Explorer (LCA / PERM / USCIS)
+
+Beyond the prevailing-wage map, the app includes a **Data Explorer** (the floating 📊 button) for
+the broader public immigration datasets, with five tabs:
+
+| Tab | What it shows |
+| --- | --- |
+| **Overview** | Totals across all loaded datasets and top states by filing volume |
+| **Employers** | Search any sponsor → their H-1B (LCA), PERM, and USCIS petition history, top occupations, and wage percentiles |
+| **PERM** | Permanent labor certification (green card) filings by year, status, employer, and occupation |
+| **Salary Insights** | Real *filed* wage distributions (percentiles) from LCA data, plus where a given salary ranks |
+| **USCIS Approvals** | Approval / denial counts and rates from the USCIS H-1B Employer Data Hub |
+
+### Data sources & freshness
+
+These datasets are **periodic public releases — not real-time**:
+
+- **DOL OFLC LCA & PERM disclosure data** — released quarterly ([DOL Performance Data](https://www.dol.gov/agencies/eta/foreign-labor/performance))
+- **USCIS H-1B Employer Data Hub** — released annually ([USCIS Data Hub](https://www.uscis.gov/tools/reports-and-studies/h-1b-employer-data-hub))
+
+### Backend setup (Neon via Vercel)
+
+The Explorer is powered by Vercel serverless functions (`api/`) over a **Neon Postgres** database.
+**Until a database is connected it transparently falls back to clearly-labeled sample data**, so the
+app runs without any backend.
+
+To enable live data:
+
+1. In the Vercel dashboard, go to **Storage → Neon** and add the integration (this sets `DATABASE_URL`).
+2. Apply the schema: `psql "$DATABASE_URL" -f db/schema.sql`
+3. Download the DOL/USCIS files (links above), export to CSV, and load them:
+   ```bash
+   node db/ingest.mjs lca   path/to/LCA_FY2024.csv   "FY2024 Q3"
+   node db/ingest.mjs perm  path/to/PERM_FY2024.csv  "FY2024 Q3"
+   node db/ingest.mjs uscis path/to/hub_FY2024.csv   "FY2024"
+   ```
+
+For local development, put the Neon connection string in `.env` as `DATABASE_URL` (see `.env.example`).
 
 ## 📋 Prerequisites
 
