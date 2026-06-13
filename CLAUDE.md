@@ -135,6 +135,10 @@ DataExplorer (overlay, tab nav)
   CustomEvent (`{ tab, state }`); `App.jsx` listens, writes the URL (tab + `f_state`), and opens the
   explorer. `DataExplorer` re-reads the active tab from the URL on each open so the bridge/deep
   links land on the right tab.
+- **Accessibility**: the overlay is a focus-trapped `role="dialog"` (Tab cycles within it, focus
+  restores to the opener on close, body scroll locks). Tabs follow the WAI-ARIA tabs pattern
+  (`tablist`/`tab`/`tabpanel`, roving `tabIndex`, Arrow/Home/End navigation). Loading states use
+  the `ExplorerLoading` skeleton (respects `prefers-reduced-motion`).
 - **CSV export**: tab tables export via `src/utils/csv.js` (`toCsv` / `downloadCsv`).
 - **Freshness**: the header `FreshnessBadge` shows "data as of" labels from `dataset_meta`
   (via `/api/overview` `meta`).

@@ -1,13 +1,13 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { StatCard, BarList, Section, ExportButton } from "./primitives";
+import { StatCard, BarList, Section, ExportButton, ExplorerLoading } from "./primitives";
 import { useExplorerData } from "./useExplorerData";
 import { formatCompact, formatNumber } from "../../utils/format";
 
 export default function OverviewTab({ onSource }) {
   const { data, loading } = useExplorerData("overview", {}, onSource);
 
-  if (loading || !data) return <div className="explorer-loading">Loading overview…</div>;
+  if (loading || !data) return <ExplorerLoading label="Loading overview…" />;
 
   const t = data.totals ?? {};
   return (

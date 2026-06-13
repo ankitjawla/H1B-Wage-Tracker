@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { StatCard, BarList, Section, ExportButton } from "./primitives";
+import { StatCard, BarList, Section, ExportButton, ExplorerLoading } from "./primitives";
 import LineChart from "./LineChart";
 import { useExplorerData } from "./useExplorerData";
 import { useUrlFilter } from "./useUrlFilter";
@@ -39,7 +39,7 @@ export default function PermTab({ onSource }) {
         </div>
 
         {loading || !data ? (
-          <div className="explorer-loading">Loading PERM data…</div>
+          <ExplorerLoading label="Loading PERM data…" />
         ) : (
           <>
             <div className="stat-grid">
