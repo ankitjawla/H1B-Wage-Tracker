@@ -112,6 +112,24 @@ FreshnessBadge.propTypes = {
   ),
 };
 
+/** Animated skeleton placeholder shown while a tab's data loads. */
+export function ExplorerLoading({ label = "Loading…" }) {
+  return (
+    <div className="explorer-skeleton" role="status" aria-live="polite" aria-busy="true">
+      <span className="sr-only">{label}</span>
+      <div className="skeleton-grid" aria-hidden="true">
+        <div className="skeleton-card" />
+        <div className="skeleton-card" />
+        <div className="skeleton-card" />
+      </div>
+      <div className="skeleton-bar wide" aria-hidden="true" />
+      <div className="skeleton-bar" aria-hidden="true" />
+      <div className="skeleton-bar" aria-hidden="true" />
+    </div>
+  );
+}
+ExplorerLoading.propTypes = { label: PropTypes.string };
+
 /** Banner shown when the explorer is rendering illustrative sample data. */
 export function SampleBanner() {
   return (

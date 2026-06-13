@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
-import { StatCard, BarList, Section, ExportButton } from "./primitives";
+import { StatCard, BarList, Section, ExportButton, ExplorerLoading } from "./primitives";
 import LineChart from "./LineChart";
 import { useExplorerData } from "./useExplorerData";
 import { useDebounce } from "../../hooks/useDebounce";
@@ -26,7 +26,7 @@ export default function UscisTab({ onSource }) {
         </div>
 
         {loading || !data ? (
-          <div className="explorer-loading">Loading USCIS data…</div>
+          <ExplorerLoading label="Loading USCIS data…" />
         ) : (
           <>
             <div className="stat-grid">

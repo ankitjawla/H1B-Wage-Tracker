@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
-import { StatCard, BarList, Section } from "./primitives";
+import { StatCard, BarList, Section, ExplorerLoading } from "./primitives";
 import LineChart from "./LineChart";
 import { useExplorerData } from "./useExplorerData";
 import { useDebounce } from "../../hooks/useDebounce";
@@ -8,7 +8,7 @@ import { formatNumber, formatUSD } from "../../utils/format";
 
 function EmployerProfile({ id, onSource, onBack }) {
   const { data, loading } = useExplorerData("employer", { id }, onSource);
-  if (loading || !data?.employer) return <div className="explorer-loading">Loading employer…</div>;
+  if (loading || !data?.employer) return <ExplorerLoading label="Loading employer…" />;
 
   const { employer, lcaByYear = [], permByYear = [], topOccupations = [], wageStats, uscis = [] } = data;
   const uscisTotals = uscis.reduce(

@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { StatCard, BarList, Section, ExportButton } from "./primitives";
+import { StatCard, BarList, Section, ExportButton, ExplorerLoading } from "./primitives";
 import LineChart from "./LineChart";
 import { useExplorerData } from "./useExplorerData";
 import { useUrlFilter } from "./useUrlFilter";
@@ -28,7 +28,7 @@ export default function OccupationTab({ onSource }) {
       </div>
 
       {loading || !data ? (
-        <div className="explorer-loading">Loading occupation data…</div>
+        <ExplorerLoading label="Loading occupation data…" />
       ) : (
         <>
           {data.socTitle && (
