@@ -55,6 +55,48 @@
   gap: 14px;
 }
 
+.source-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.source-pill.live {
+  background: rgba(22, 163, 74, 0.9);
+}
+
+.source-pill.sample {
+  background: rgba(217, 119, 6, 0.95);
+}
+
+.source-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.source-pill.live .source-dot {
+  animation: source-pulse 2s ease-in-out infinite;
+}
+
+@keyframes source-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .source-pill.live .source-dot {
+    animation: none;
+  }
+}
+
 .freshness-badge {
   font-size: 12px;
   font-weight: 600;

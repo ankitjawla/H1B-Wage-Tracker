@@ -149,6 +149,17 @@ export default function DataExplorer({ isOpen, onClose }) {
           </div>
         </div>
         <div className="explorer-header-right">
+          <span
+            className={`source-pill ${source === "sample" ? "sample" : "live"}`}
+            title={
+              source === "sample"
+                ? "Live database not connected — showing sample data"
+                : "Served from the live disclosure database"
+            }
+          >
+            <span className="source-dot" aria-hidden="true" />
+            {source === "sample" ? "Sample data" : "Live data"}
+          </span>
           <FreshnessBadge meta={overview?.meta} />
           <button className="explorer-close" onClick={onClose} aria-label="Close data explorer">
             <CloseIcon />
