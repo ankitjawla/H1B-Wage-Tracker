@@ -1,12 +1,13 @@
-import React, { useState } from "react";
+import React from "react";
 import PropTypes from "prop-types";
 import { StatCard, BarList, Section, ExportButton } from "./primitives";
 import { useExplorerData } from "./useExplorerData";
+import { useUrlFilter } from "./useUrlFilter";
 import { formatNumber, formatUSD, formatPct } from "../../utils/format";
 
 export default function PermTab({ onSource }) {
-  const [state, setState] = useState("");
-  const [soc, setSoc] = useState("");
+  const [state, setState] = useUrlFilter("state");
+  const [soc, setSoc] = useUrlFilter("soc");
   const { data, loading } = useExplorerData("perm", { state, soc }, onSource);
 
   const s = data?.summary ?? {};

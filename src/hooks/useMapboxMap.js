@@ -120,7 +120,17 @@ export function useMapboxMap(onMapLoad) {
                 </div>`
               : "";
 
-            new mapboxgl.Popup({ maxWidth: "300px" })
+            // Bridge into the Data Explorer, pre-filtered to this state. Only
+            // offered when we resolved a state abbreviation.
+            const hasState = stateAbbr !== "N/A";
+            const explorerButton = hasState
+              ? `<button class="popup-explorer-btn" type="button"
+                    style="margin-top: 10px; width: 100%; padding: 8px; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 13px; color: #fff; background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);">
+                    📊 See sponsors &amp; wages in ${stateAbbr}
+                  </button>`
+              : "";
+
+            const popup = new mapboxgl.Popup({ maxWidth: "300px" })
               .setLngLat(e.lngLat)
               .setHTML(
                 `<div style="padding: 4px;">
@@ -132,9 +142,26 @@ export function useMapboxMap(onMapLoad) {
                     </div>
                   </div>
                   ${thresholdSection}
+                  ${explorerButton}
                 </div>`
               )
               .addTo(map);
+
+            // Wire the bridge button: dispatch an event App listens for to open
+            // the explorer focused on this state's wage filings.
+            if (hasState) {
+              const btn = popup.getElement()?.querySelector(".popup-explorer-btn");
+              if (btn) {
+                btn.addEventListener("click", () => {
+                  window.dispatchEvent(
+                    new CustomEvent("explorer:open", {
+                      detail: { tab: "wages", state: stateAbbr },
+                    })
+                  );
+                  popup.remove();
+                });
+              }
+            }
           });
 
           map.on("mouseenter", "county-fill", () => {

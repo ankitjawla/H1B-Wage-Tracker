@@ -6,7 +6,7 @@ import WelcomeModal from "./components/WelcomeModal";
 import AdminPanel from "./components/AdminPanel";
 import DataExplorer from "./components/explorer/DataExplorer";
 import { hasSeenWelcome } from "./utils/userTracking";
-import { readExplorerUrl, writeExplorerUrl } from "./utils/explorerUrl";
+import { readExplorerUrl, writeExplorerUrl, writeFilter } from "./utils/explorerUrl";
 
 export default function App() {
   const [showWelcome, setShowWelcome] = useState(false);
@@ -23,6 +23,20 @@ export default function App() {
     setShowExplorer(false);
     writeExplorerUrl({ open: false });
   };
+
+  // Bridge from the map: a county popup can request the explorer, pre-filtered
+  // to that location. Write the URL (tab + filters) before opening so the
+  // explorer and its tabs initialize from it.
+  useEffect(() => {
+    const handleOpenRequest = (e) => {
+      const { tab = "wages", state } = e.detail || {};
+      writeExplorerUrl({ open: true, tab });
+      if (state) writeFilter("state", state);
+      setShowExplorer(true);
+    };
+    window.addEventListener("explorer:open", handleOpenRequest);
+    return () => window.removeEventListener("explorer:open", handleOpenRequest);
+  }, []);
 
   // Check if user has seen welcome screen on mount
   useEffect(() => {

@@ -1,15 +1,16 @@
-import React, { useState } from "react";
+import React from "react";
 import PropTypes from "prop-types";
 import { StatCard, BarList, Section, ExportButton } from "./primitives";
 import { useExplorerData } from "./useExplorerData";
+import { useUrlFilter } from "./useUrlFilter";
 import { useDebounce } from "../../hooks/useDebounce";
 import { formatNumber, formatUSD, ordinal } from "../../utils/format";
 import { parseCurrency } from "../../utils/currency";
 
 export default function WagesTab({ onSource }) {
-  const [soc, setSoc] = useState("");
-  const [state, setState] = useState("");
-  const [salary, setSalary] = useState("");
+  const [soc, setSoc] = useUrlFilter("soc");
+  const [state, setState] = useUrlFilter("state");
+  const [salary, setSalary] = useUrlFilter("salary");
   const debouncedSalary = useDebounce(salary, 400);
 
   const { data, loading } = useExplorerData(
