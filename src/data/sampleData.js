@@ -115,6 +115,36 @@ export const SAMPLE = {
     salaryPercentile: null,
   },
 
+  occupation: {
+    soc: "15-1252",
+    socTitle: "Software Developers",
+    summary: { lca: 48200, perm: 12400, medianWage: 148000 },
+    byYear: [
+      { fy: 2021, count: 9800 },
+      { fy: 2022, count: 11600 },
+      { fy: 2023, count: 13100 },
+      { fy: 2024, count: 13700 },
+    ],
+    wageTrend: [
+      { fy: 2021, medianWage: 132000 },
+      { fy: 2022, medianWage: 139000 },
+      { fy: 2023, medianWage: 145000 },
+      { fy: 2024, medianWage: 148000 },
+    ],
+    topEmployers: [
+      { id: 3, name: "Hooli Inc", count: 980 },
+      { id: 1, name: "Globex Technologies Inc", count: 720 },
+      { id: 2, name: "Initech Software LLC", count: 540 },
+    ],
+    topStates: [
+      { state: "CA", medianWage: 168000, count: 14200 },
+      { state: "WA", medianWage: 162000, count: 5100 },
+      { state: "NY", medianWage: 152000, count: 6300 },
+      { state: "TX", medianWage: 138000, count: 7400 },
+      { state: "MA", medianWage: 150000, count: 3200 },
+    ],
+  },
+
   uscis: {
     totals: {
       initialApproval: 132000, initialDenial: 5400,

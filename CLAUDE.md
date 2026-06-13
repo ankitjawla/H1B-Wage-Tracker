@@ -98,16 +98,18 @@ main.jsx → App.jsx → Map.jsx
 
 ### Data Explorer (LCA / PERM / USCIS)
 
-A full-screen overlay (`src/components/explorer/DataExplorer.jsx`) with five tabs —
-**Overview, Employers, PERM, Salary Insights, USCIS Approvals** — over DOL/USCIS disclosure data.
+A full-screen overlay (`src/components/explorer/DataExplorer.jsx`) with six tabs —
+**Overview, Employers, Occupations, PERM, Salary Insights, USCIS Approvals** — over DOL/USCIS
+disclosure data.
 
 ```
 DataExplorer (overlay, tab nav)
-  ├─ OverviewTab   → /api/overview   (totals, top states)
-  ├─ EmployerTab   → /api/employers  → /api/employer?id=  (search → profile)
-  ├─ PermTab       → /api/perm        (PERM aggregates, filters: state/soc)
-  ├─ WagesTab      → /api/wages       (filed-wage percentiles, salary ranking)
-  └─ UscisTab      → /api/uscis       (approvals/denials, approval rate)
+  ├─ OverviewTab    → /api/overview    (totals, top states)
+  ├─ EmployerTab    → /api/employers   → /api/employer?id=  (search → profile)
+  ├─ OccupationTab  → /api/occupation  (SOC pivot: sponsors, wage trend, geography)
+  ├─ PermTab        → /api/perm        (PERM aggregates, filters: state/soc)
+  ├─ WagesTab       → /api/wages       (filed-wage percentiles, salary ranking)
+  └─ UscisTab       → /api/uscis       (approvals/denials, approval rate)
 ```
 
 - **API client**: `src/utils/api.js#fetchData(endpoint, params)` returns `{ data, source }`.
@@ -174,7 +176,7 @@ the same normalization**, or counties silently fall through to "no data" (gray).
 ```
 api/                        # Vercel serverless functions (Data Explorer API)
   _db.js                    # Neon client + withDb() wrapper (not a route)
-  overview.js employers.js employer.js perm.js wages.js uscis.js
+  overview.js employers.js employer.js occupation.js perm.js wages.js uscis.js
 db/
   schema.sql                # Postgres schema for disclosure data
 scripts/
