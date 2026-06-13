@@ -124,6 +124,13 @@ DataExplorer (overlay, tab nav)
   `src/components/explorer/primitives.jsx` (which also exports `ExportButton` and `FreshnessBadge`).
 - **Deep-linkable**: open state + active tab are encoded in the URL (`?view=explorer&tab=perm`) via
   `src/utils/explorerUrl.js` and restored on load — shareable alongside the map's `?soc=&salary=`.
+  Tab filters are also deep-linked, **namespaced `f_`** (`f_state`, `f_soc`, `f_salary`,
+  `f_employer`) so they never collide with the map's `soc`/`salary`. PERM & Salary tabs bind their
+  filters via `components/explorer/useUrlFilter.js`.
+- **Map → Explorer bridge**: a county popup button dispatches a `window` `"explorer:open"`
+  CustomEvent (`{ tab, state }`); `App.jsx` listens, writes the URL (tab + `f_state`), and opens the
+  explorer. `DataExplorer` re-reads the active tab from the URL on each open so the bridge/deep
+  links land on the right tab.
 - **CSV export**: tab tables export via `src/utils/csv.js` (`toCsv` / `downloadCsv`).
 - **Freshness**: the header `FreshnessBadge` shows "data as of" labels from `dataset_meta`
   (via `/api/overview` `meta`).

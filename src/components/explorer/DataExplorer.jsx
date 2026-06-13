@@ -38,6 +38,12 @@ export default function DataExplorer({ isOpen, onClose }) {
     writeExplorerUrl({ open: true, tab });
   }, []);
 
+  // Re-sync the active tab from the URL each time the explorer opens, so deep
+  // links and the map→explorer bridge (which set ?tab=) land on the right tab.
+  useEffect(() => {
+    if (isOpen) setActive(readExplorerUrl().tab);
+  }, [isOpen]);
+
   // Close on Escape
   useEffect(() => {
     if (!isOpen) return undefined;
