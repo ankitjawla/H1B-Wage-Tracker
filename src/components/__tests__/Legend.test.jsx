@@ -6,7 +6,7 @@ describe("Legend component", () => {
   it("should render all wage levels", () => {
     render(<Legend />);
     
-    expect(screen.getByText("Level I (Entry)")).toBeInTheDocument();
+    expect(screen.getByText("Level I (Entry Level)")).toBeInTheDocument();
     expect(screen.getByText("Level II (Qualified)")).toBeInTheDocument();
     expect(screen.getByText("Level III (Experienced)")).toBeInTheDocument();
     expect(screen.getByText("Level IV (Fully Competent)")).toBeInTheDocument();

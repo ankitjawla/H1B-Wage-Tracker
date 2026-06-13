@@ -42,6 +42,10 @@ export function useWageLevels(mapRef, countiesRef) {
 
         counties.features.forEach((f) => {
           delete f.properties.level;
+          delete f.properties.wageI;
+          delete f.properties.wageII;
+          delete f.properties.wageIII;
+          delete f.properties.wageIV;
 
           const state = STATE_FP_TO_ABBR[f.properties.STATEFP];
           if (!state) return;
@@ -49,6 +53,13 @@ export function useWageLevels(mapRef, countiesRef) {
           const key = `${state}|${normalize(`${f.properties.NAME} County`)}`;
           const levels = wageTable[key];
           if (!levels) return;
+
+          // Expose annual thresholds so the county popup can show the full
+          // Level I–IV scale, not just the matched level
+          if (levels.I) f.properties.wageI = Math.round(levels.I * HOURS_PER_YEAR);
+          if (levels.II) f.properties.wageII = Math.round(levels.II * HOURS_PER_YEAR);
+          if (levels.III) f.properties.wageIII = Math.round(levels.III * HOURS_PER_YEAR);
+          if (levels.IV) f.properties.wageIV = Math.round(levels.IV * HOURS_PER_YEAR);
 
           let level = null;
           if (levels.IV && hourly >= levels.IV) level = 4;
