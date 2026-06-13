@@ -21,15 +21,15 @@ function profileFor(id) {
 describe("EmployerTab comparison", () => {
   beforeEach(() => {
     Element.prototype.scrollIntoView = vi.fn();
-    // Mock the Supabase RPC endpoints used by the employer search + profiles.
+    // Mock the /api endpoints used by the employer search + profiles.
     vi.stubGlobal(
       "fetch",
-      vi.fn((url, opts) => {
-        if (url.endsWith("/rpc/h1b_employers")) {
-          return Promise.resolve({ ok: true, json: () => Promise.resolve({ employers: EMPLOYERS }) });
+      vi.fn((url) => {
+        if (url.startsWith("/api/employers")) {
+          return Promise.resolve({ ok: true, json: () => Promise.resolve({ configured: true, employers: EMPLOYERS }) });
         }
-        const id = JSON.parse(opts.body).emp_id;
-        return Promise.resolve({ ok: true, json: () => Promise.resolve(profileFor(id)) });
+        const id = Number(new URL(url, "http://x").searchParams.get("id"));
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ configured: true, ...profileFor(id) }) });
       })
     );
   });

@@ -6,7 +6,7 @@ describe("DataExplorer accessibility & navigation", () => {
   beforeEach(() => {
     // jsdom lacks scrollIntoView (used by some inputs); stub it.
     Element.prototype.scrollIntoView = vi.fn();
-    // Supabase RPC returns a valid (empty) overview payload.
+    // /api/overview returns a valid (empty) payload.
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue({
